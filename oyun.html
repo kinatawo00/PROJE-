@@ -3,14 +3,14 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap">
 <style>
-/* Yerleşim: tam ekran çim saha; üstte ince rakip şeridi, altta envanter paneli, ortada tuval. Tek tema (oyun dünyası). */
+/* Yerleşim: tam ekran çiftlik avlusu (eğik üstten bakış); üstte rakip şeridi, altta ahşap envanter paneli. Tek tema (oyun dünyası). */
 :root {
   color-scheme: dark;
-  --grass: #5fa644;
-  --grass-deep: #3f7d2e;
-  --ink: #17240f;
-  --panel: rgba(20, 34, 14, .82);
-  --paper: #fff8e6;
+  --grass: #7dbb4b;
+  --ink: #2a1a0c;
+  --wood: rgba(64, 40, 20, .9);
+  --wood-hi: #8a5a2b;
+  --paper: #fff6dd;
   --tomato: #e5372b;
   --sun: #ffc73a;
   --display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
@@ -19,14 +19,10 @@
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
 body {
-  background: var(--grass);
-  color: var(--paper);
-  font-family: var(--body);
-  font-weight: 600;
-  overflow: hidden;
-  overscroll-behavior: none;
-  -webkit-user-select: none; user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  background: var(--grass); color: var(--paper);
+  font-family: var(--body); font-weight: 600;
+  overflow: hidden; overscroll-behavior: none;
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
 }
 #app { position: relative; height: 100%; overflow: hidden; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
@@ -39,34 +35,30 @@ body {
 }
 .bar > * { pointer-events: auto; }
 #top { top: 0; padding-block: 8px; display: flex; gap: 8px; align-items: center; }
-#bottom { bottom: 0; padding-block: 8px; display: flex; flex-direction: column; gap: 8px; }
+#bottom { bottom: 0; padding-block: 8px; display: flex; flex-direction: column; gap: 6px; }
 .grow { flex: 1; min-width: 0; }
 
 .chip {
-  background: var(--panel); border-radius: 999px; padding: 6px 12px;
-  font-size: 13px; display: flex; gap: 8px; align-items: center; min-width: 0;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: var(--wood); border: 2px solid var(--wood-hi); border-radius: 12px; padding: 4px 10px;
+  font-size: 13px; display: flex; gap: 6px; align-items: center; min-width: 0;
+  white-space: nowrap; overflow: hidden;
 }
-.chip b { font-family: var(--display); font-weight: 800; font-size: 15px; }
+.chip b { font-family: var(--display); font-weight: 800; font-size: 15px; overflow: hidden; text-overflow: ellipsis; }
+.chip span { flex: none; }
 .swatch { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 
-button {
-  font: inherit; color: inherit; border: 0; cursor: pointer;
-  -webkit-user-select: none; user-select: none;
-}
-button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+button { font: inherit; color: inherit; border: 0; cursor: pointer; -webkit-user-select: none; user-select: none; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
 .btn {
-  background: var(--panel); border-radius: 999px; padding: 8px 14px;
+  background: var(--wood); border: 2px solid var(--wood-hi); border-radius: 12px; padding: 6px 12px;
   font-family: var(--display); font-weight: 800; font-size: 14px; flex: none;
 }
-.btn.primary { background: var(--tomato); color: #fff; font-size: 18px; padding: 12px 24px; box-shadow: 0 4px 0 #9c1b13; }
+.btn.primary { background: var(--tomato); border-color: #9c1b13; color: #fff; font-size: 18px; padding: 10px 26px; box-shadow: 0 4px 0 #9c1b13; }
 .btn.primary:disabled { opacity: .6; }
-.btn.ghost { background: rgba(255,255,255,.12); }
-.btn.danger { background: #9c1b13; }
 
 #banner {
-  position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 2;
-  background: var(--panel); border-radius: 12px; padding: 6px 14px;
+  position: absolute; top: 54px; left: 50%; transform: translateX(-50%); z-index: 2;
+  background: var(--wood); border-radius: 10px; padding: 4px 12px;
   font-family: var(--display); font-weight: 800; font-size: 13px; line-height: 1.3; text-align: center; white-space: nowrap;
   max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; pointer-events: none;
 }
@@ -75,7 +67,7 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
 @keyframes shake { 25% { transform: translateX(calc(-50% - 6px)); } 75% { transform: translateX(calc(-50% + 6px)); } }
 
 #toast {
-  position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); z-index: 3;
+  position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 3;
   font-family: var(--display); font-weight: 800; font-size: 38px; line-height: 1.05; text-align: center;
   color: var(--sun); text-shadow: 0 3px 0 var(--ink), 0 0 18px rgba(0,0,0,.45);
   pointer-events: none; width: max-content; max-width: 90%;
@@ -90,46 +82,56 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
   100% { opacity: 0; transform: translate(-50%, -70%) scale(1); }
 }
 
-#lvRow { display: flex; align-items: center; gap: 8px; background: var(--panel); border-radius: 999px; padding: 5px 12px; font-size: 13px; }
-#lvLabel { font-family: var(--display); font-weight: 800; font-size: 15px; white-space: nowrap; }
-#xpBar { flex: 1; min-width: 0; height: 10px; border-radius: 999px; background: rgba(255,255,255,.16); overflow: hidden; }
+#lvRow { display: flex; align-items: center; gap: 8px; background: var(--wood); border: 2px solid var(--wood-hi); border-radius: 12px; padding: 3px 10px; font-size: 13px; }
+#lvLabel { font-family: var(--display); font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; }
+#xpBar { flex: 1; min-width: 0; height: 10px; border-radius: 999px; background: rgba(0,0,0,.35); overflow: hidden; }
 #xpBar i { display: block; height: 100%; width: 0; background: var(--sun); border-radius: 999px; transition: width .3s; }
 #xpText { font-variant-numeric: tabular-nums; white-space: nowrap; opacity: .85; }
 
 #items { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .item {
-  background: var(--panel); border-radius: 14px; padding: 7px 4px 6px;
+  background: var(--wood); border-radius: 12px; padding: 6px 4px 5px;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  border: 2px solid transparent; min-width: 0;
+  border: 2px solid var(--wood-hi); min-width: 0;
 }
-.item .dot { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset -3px -3px 0 rgba(0,0,0,.22); }
+.item .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--ink); box-shadow: inset -3px -3px 0 rgba(0,0,0,.22); }
 .item .nm { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .item .ct { font-family: var(--display); font-weight: 800; font-size: 16px; line-height: 1; font-variant-numeric: tabular-nums; }
-.item.sel { border-color: var(--sun); background: rgba(50, 70, 20, .92); }
-.item.locked { opacity: .5; }
+.item.sel { border-color: var(--sun); background: rgba(110, 66, 24, .96); }
+.item.locked { opacity: .55; }
 .item.empty .ct { color: #ff9b93; }
 
 #modal {
-  position: absolute; inset: 0; z-index: 5; background: rgba(15, 28, 10, .72);
+  position: absolute; inset: 0; z-index: 5; background: rgba(30, 20, 8, .7);
   display: flex; align-items: center; justify-content: center;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 16px;
+  padding-block: 12px;
 }
 .card {
-  background: var(--paper); color: var(--ink); border-radius: 22px; padding: 22px 20px 20px;
-  width: 100%; max-width: 380px; max-height: 100%; overflow: auto;
-  display: flex; flex-direction: column; gap: 12px; text-align: center;
-  box-shadow: 0 10px 0 rgba(0,0,0,.25);
+  background: var(--paper); color: var(--ink); border: 4px solid var(--wood-hi); border-radius: 20px; padding: 18px 16px 16px;
+  width: 100%; max-width: 380px; max-height: 100%; overflow: auto; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 10px; text-align: center;
 }
-.card h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1; color: var(--tomato); text-wrap: balance; }
-.card h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1.1; text-wrap: balance; }
-.card p { margin: 0; font-size: 15px; line-height: 1.45; }
-.card ul { margin: 0; padding-left: 20px; text-align: left; font-size: 14px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
-.card .note { font-size: 13px; background: #f3e6bf; border-radius: 10px; padding: 8px 10px; }
+.card h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 34px; line-height: 1; color: var(--tomato); text-wrap: balance; }
+.card h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.1; text-wrap: balance; }
+.card p { margin: 0; font-size: 14px; line-height: 1.4; }
+.card ul { margin: 0; padding-left: 18px; text-align: left; font-size: 13px; line-height: 1.4; }
+.card .note { font-size: 13px; background: #f1e2b6; border-radius: 10px; padding: 7px 10px; }
+.card .note.bad { background: #f9cfc9; }
 .card .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-.card .btn.ghost { background: #e9dcb4; color: var(--ink); }
-.card .btn.danger { color: #fff; }
+.card .btn { background: #ead9aa; border-color: #c9ae6e; color: var(--ink); }
+.card .btn.primary { background: var(--tomato); border-color: #9c1b13; color: #fff; }
+.card .btn.danger { background: #9c1b13; border-color: #6d100b; color: #fff; }
+.field { display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 13px; font-weight: 800; }
+.field input {
+  font: inherit; font-size: 16px; font-weight: 800; color: var(--ink); background: #fff; border: 2px solid #c9ae6e; border-radius: 10px;
+  padding: 8px 10px; min-width: 0; -webkit-user-select: text; user-select: text;
+}
+.pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pc { background: #f1e2b6; border: 3px solid #c9ae6e; border-radius: 14px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; color: var(--ink); font-family: var(--display); font-weight: 800; font-size: 14px; }
+.pc canvas { width: 84px; height: 104px; }
+.pc.sel { border-color: var(--tomato); background: #ffe9a8; }
 </style>
 
 <div id="app">
@@ -158,26 +160,31 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
 'use strict';
 
 /* ---------- Sabitler ---------- */
-const W = 100, H = 170, HALF = 85, TICK = 20000, MAXSPLAT = 40, TAU = Math.PI * 2;
+const W = 100, H = 170, HALF = 85, TICK = 20000, MAXSPLAT = 60, TAU = Math.PI * 2, INK = '#1b1714';
 const ITEMS = {
-  t: { name: 'Domates',       r: 7,  xp: 10, unlock: 1, cap0: 50, capStep: 10, every: 1,  col: '#e5372b', dark: '#9c1b13' },
-  e: { name: 'Çürük yumurta', r: 9,  xp: 18, unlock: 2, cap0: 10, capStep: 5,  every: 3,  col: '#efe9c0', dark: '#b9b077' },
-  m: { name: 'Çamur topu',    r: 12, xp: 30, unlock: 4, cap0: 6,  capStep: 3,  every: 6,  col: '#6b4423', dark: '#452b14' },
-  p: { name: 'Boya balonu',   r: 15, xp: 50, unlock: 6, cap0: 4,  capStep: 2,  every: 10, col: '#a44be0', dark: '#6c2a9c' },
+  t: { name: 'Domates',       r: 6.5, xp: 10, unlock: 1, cap0: 50, capStep: 10, every: 1,  col: '#e5372b', dark: '#a3140f' },
+  e: { name: 'Çürük yumurta', short: 'Yumurta', r: 8,   xp: 18, unlock: 2, cap0: 10, capStep: 5,  every: 3,  col: '#f4efd2', dark: '#c9c08a' },
+  m: { name: 'Çamur topu',    r: 10,  xp: 30, unlock: 4, cap0: 6,  capStep: 3,  every: 6,  col: '#7a4c26', dark: '#4a2c12' },
+  p: { name: 'Boya balonu',   r: 12,  xp: 50, unlock: 6, cap0: 4,  capStep: 2,  every: 10, col: '#a44be0', dark: '#6c2a9c' },
 };
 const ORDER = ['t', 'e', 'm', 'p'];
 const PAINT = [['#a44be0', '#6c2a9c'], ['#12b8c9', '#0a7783'], ['#ff5fa2', '#b8306b'], ['#ff8a1f', '#b85a08']];
 const TEAM = {
-  A: { main: '#f2a516', dark: '#b06f00', light: '#ffd063', name: 'Sarı' },
-  B: { main: '#2f8fe0', dark: '#1a5c9e', light: '#7cc0f7', name: 'Mavi' },
+  A: { main: '#e8a32a', dark: '#a86b10', light: '#f6c95c', name: 'Sarı' },
+  B: { main: '#3f8fd6', dark: '#1f5c9c', light: '#7fbdf0', name: 'Mavi' },
+};
+const CH = {
+  cap:  { label: 'Şapkalı',     skin: '#f0b877', tee: '#1f1f22', pants: '#3b3b3f', shoe: '#ece7dc', w: 6.0 },
+  hair: { label: 'Dağınık saç', skin: '#f5c49a', tee: '#1d1d20', pants: '#232326', shoe: '#3a3a3e', w: 7.6 },
 };
 
 /* ---------- Durum ---------- */
 const G = { players: { A: null, B: null }, splats: new Map() };
 let me = 'A', view = 'A', canPlay = false, online = false, started = false, ready = false;
-let myUid = '', be = null, sel = 't', note = '';
+let myUid = '', be = null, sel = 't', note = '', noteBad = false;
 const other = s => (s === 'A' ? 'B' : 'A');
 const rid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const inClaude = !!(window.claude && window.claude.use);
 
 function levelInfo(xp) {
   let L = 1, need = 60;
@@ -187,10 +194,14 @@ function levelInfo(xp) {
 const lv = p => levelInfo(p ? p.xp || 0 : 0);
 const cap = (k, L) => (L < ITEMS[k].unlock ? 0 : ITEMS[k].cap0 + ITEMS[k].capStep * (L - ITEMS[k].unlock));
 const baseScale = L => Math.min(1.7, 1 + 0.08 * (L - 1));
-function newPlayer(uid, resetAt) {
-  return { uid, xp: 0, ammo: { t: 50, e: 0, m: 0, p: 0 }, regenAt: Date.now(), tick: 0, cleaned: 0, resetAt: resetAt || 0 };
+const blobCount = (L, type) => Math.min(5, 1 + Math.floor((L - 1) / 2)) + (type === 'p' ? 1 : 0);
+const chOf = side => { const p = G.players[side]; return p && CH[p.ch] ? p.ch : side === 'A' ? 'cap' : 'hair'; };
+const nameOf = side => { const p = G.players[side]; return (p && p.name) || TEAM[side].name; };
+function newPlayer(uid, resetAt, keep) {
+  return { uid, name: keep ? keep.name || '' : '', ch: keep ? keep.ch || '' : '', xp: 0, ammo: { t: 50, e: 0, m: 0, p: 0 }, regenAt: Date.now(), tick: 0, cleaned: 0, resetAt: resetAt || 0 };
 }
-const plain = p => ({ uid: p.uid, xp: p.xp, ammo: { ...p.ammo }, regenAt: p.regenAt, tick: p.tick, cleaned: p.cleaned, resetAt: p.resetAt || 0 });
+const plain = p => ({ uid: p.uid, name: p.name || '', ch: p.ch || '', xp: p.xp, ammo: { ...p.ammo }, regenAt: p.regenAt, tick: p.tick, cleaned: p.cleaned || 0, resetAt: p.resetAt || 0 });
+const splatData = s => ({ side: s.side, x: s.x, y: s.y, r: s.r, type: s.type, seed: s.seed, by: s.by, at: s.at, g: s.g || '', lv: s.lv || 1 });
 
 function regen(p) {
   if (!p) return;
@@ -207,15 +218,12 @@ function regen(p) {
 const dirtyCount = side => { let n = 0; for (const s of G.splats.values()) if (s.side === side) n++; return n; };
 
 /* ---------- Depolama: yerel (tek telefon) ---------- */
-const LS = 'domates-savasi-v1';
+const LS = 'domates-savasi-v2';
 const localBE = {
   init() {
     try {
       const d = JSON.parse(localStorage.getItem(LS) || 'null');
-      if (d && d.players) {
-        G.players = d.players;
-        for (const s of d.splats || []) G.splats.set(s.id, s);
-      }
+      if (d && d.players) { G.players = d.players; for (const s of d.splats || []) G.splats.set(s.id, s); }
     } catch (e) {}
     if (!G.players.A) G.players.A = newPlayer('A');
     if (!G.players.B) G.players.B = newPlayer('B');
@@ -225,22 +233,19 @@ const localBE = {
     try {
       localStorage.setItem(LS, JSON.stringify({
         players: { A: plain(G.players.A), B: plain(G.players.B) },
-        splats: [...G.splats.values()].map(splatData).map((d, i) => ({ ...d, id: [...G.splats.keys()][i] })),
+        splats: [...G.splats.values()].map(s => ({ ...splatData(s), id: s.id })),
       }));
     } catch (e) {}
   },
   addSplat(s) { s.id = rid(); G.splats.set(s.id, s); this.persist(); },
   delSplat(id) { G.splats.delete(id); this.persist(); },
   savePlayer() { this.persist(); },
-  reset() {
-    G.splats.clear(); G.players.A = newPlayer('A'); G.players.B = newPlayer('B'); this.persist();
-  },
+  reset() { G.splats.clear(); G.players.A = newPlayer('A', 0, G.players.A); G.players.B = newPlayer('B', 0, G.players.B); this.persist(); },
 };
-const splatData = s => ({ side: s.side, x: s.x, y: s.y, r: s.r, type: s.type, seed: s.seed, by: s.by, at: s.at });
 
 /* ---------- Depolama: çevrimiçi (iki telefon) ---------- */
 function makeOnlineBE(db) {
-  const localAdds = new Map(), localDels = new Map();
+  const localAdds = new Map(), localDels = new Map(), groups = new Map();
   let saveT = null, chain = Promise.resolve(), warned = false;
   const fail = () => { if (!warned) { warned = true; toast('Kaydedilemedi', 'Bağlantını kontrol et'); setTimeout(() => (warned = false), 8000); } };
   const flush = () => {
@@ -269,15 +274,15 @@ function makeOnlineBE(db) {
       if (claim) {
         try {
           const p = newPlayer(uid, (pa || pb || {}).resetAt || 0);
-          await db.doc('players/' + claim).set(p);
+          await db.doc('players/' + claim).set(plain(p));
           G.players[claim] = p; me = claim;
         } catch (e) {
-          me = 'A'; canPlay = false; claim = null;
-          note = 'Bu oyuna yazma iznin yok. Oyunun sahibi seni e-postayla Editör olarak davet etmeli. Şimdilik izleyicisin.';
+          me = 'A'; canPlay = false; claim = null; noteBad = true;
+          note = 'Oyunu görebiliyorsun ama oynama iznin yok. Oyunun sahibi Paylaş menüsünden seni e-postayla Editör olarak davet etmeli (herkese açık link kapalı olmalı).';
           view = me; this.subscribe(); return;
         }
       }
-      if (claim || G.players[me] && G.players[me].uid === uid) canPlay = true;
+      if (claim || (G.players[me] && G.players[me].uid === uid)) canPlay = true;
       view = me;
       this.subscribe();
     },
@@ -298,8 +303,11 @@ function makeOnlineBE(db) {
           if (G.splats.has(id) || incoming.has(id)) continue;
           if (localDels.has(id) && now - localDels.get(id) < 15000) continue;
           const s = { ...doc.data(), id };
-          if (started && s.side === me && s.by !== myUid && now - s.at < 12000) launchIncoming(s);
-          else G.splats.set(id, s);
+          if (started && s.side === me && s.by !== myUid && now - s.at < 12000) {
+            const gk = s.g || id; let grp = groups.get(gk);
+            if (!grp) { grp = { landed: false, list: [] }; groups.set(gk, grp); launchIncoming(s, grp); }
+            if (grp.landed) G.splats.set(id, s); else { grp.list.push(s); incoming.set(id, s); }
+          } else G.splats.set(id, s);
         }
         for (const [id, s] of G.splats) {
           if (seen.has(id)) continue;
@@ -325,7 +333,7 @@ function makeOnlineBE(db) {
       for (const side of ['A', 'B']) {
         const p = G.players[side];
         if (!p) continue;
-        G.players[side] = newPlayer(p.uid, at);
+        G.players[side] = newPlayer(p.uid, at, p);
         const d = plain(G.players[side]);
         chain = chain.then(() => db.doc('players/' + side).set(d)).catch(fail);
       }
@@ -341,7 +349,7 @@ function resize() {
   const r = cv.getBoundingClientRect();
   cw = r.width; ch = r.height; dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
-  const topH = $('top').offsetHeight + 34, botH = $('bottom').offsetHeight + 4;
+  const topH = $('top').offsetHeight + 30, botH = $('bottom').offsetHeight + 4;
   sc = Math.max(0.5, Math.min(cw / W, (ch - topH - botH) / H));
   ox = (cw - W * sc) / 2; oy = topH + (ch - topH - botH - H * sc) / 2;
 }
@@ -352,12 +360,18 @@ function rng(seed) {
   let a = seed >>> 0;
   return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
+function rr(x, y, w, h, r, g) {
+  g = g || ctx; r = Math.min(r, w / 2, h / 2);
+  g.beginPath(); g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
 
 /* ---------- Karakterler, mermiler, parçacıklar ---------- */
 const chars = { me: null, enemy: null };
 function resetChars() {
-  chars.me = { x: 50, y: HALF + 46, tx: 50, ty: HALF + 46, ang: -Math.PI / 2, walk: 0, throwT: 0, scrub: 0, moving: false };
-  chars.enemy = { x: 50, y: HALF - 46, tx: 50, ty: HALF - 46, ang: Math.PI / 2, walk: 0, throwT: 0, scrub: 0, moving: false, idle: 2 };
+  chars.me = { x: 50, y: HALF + 44, tx: 50, ty: HALF + 44, dir: 'up', home: 'up', walk: 0, throwT: 0, scrub: 0, moving: false, still: 0 };
+  chars.enemy = { x: 50, y: HALF - 44, tx: 50, ty: HALF - 44, dir: 'down', home: 'down', walk: 0, throwT: 0, scrub: 0, moving: false, still: 0, idle: 2 };
 }
 resetChars();
 const shots = [], parts = [], incoming = new Map();
@@ -369,52 +383,63 @@ function splatColors(s) {
   if (s.type === 'p') return PAINT[(s.seed >>> 3) % PAINT.length];
   return [ITEMS[s.type].col, ITEMS[s.type].dark];
 }
+function burstCols(s) {
+  if (s.type === 't') return ['#e5372b', '#a3140f', '#ff6a55', '#f6d27a'];
+  if (s.type === 'e') return ['#f4efd2', '#e8a91c', '#b7c23f'];
+  if (s.type === 'm') return ['#7a4c26', '#4a2c12', '#9a6a3c'];
+  return splatColors(s).concat('#fff');
+}
 function burst(wx, wy, cols, n, speed) {
   for (let i = 0; i < n; i++) {
     const a = Math.random() * TAU, v = speed * (0.3 + Math.random());
-    parts.push({ x: wx, y: wy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.35 + Math.random() * 0.35, max: 0.7, r: 0.6 + Math.random() * 1.4, col: cols[i % cols.length], drag: 3 });
+    parts.push({ x: wx, y: wy, vx: Math.cos(a) * v, vy: Math.sin(a) * v * 0.8, life: 0.35 + Math.random() * 0.35, max: 0.7, r: 0.6 + Math.random() * 1.4, col: cols[i % cols.length], drag: 3 });
   }
 }
 function bubbles(wx, wy) {
-  parts.push({ x: wx + (Math.random() - .5) * 6, y: wy + (Math.random() - .5) * 6, vx: (Math.random() - .5) * 6, vy: -4 - Math.random() * 6, life: 0.5, max: 0.5, r: 0.7 + Math.random() * 1.2, col: 'rgba(255,255,255,.85)', drag: 1, ring: true });
+  parts.push({ x: wx + (Math.random() - .5) * 6, y: wy + (Math.random() - .5) * 5, vx: (Math.random() - .5) * 6, vy: -4 - Math.random() * 6, life: 0.5, max: 0.5, r: 0.7 + Math.random() * 1.2, col: 'rgba(255,255,255,.9)', drag: 1, ring: true });
 }
-
-function launch(from, to, type, onLand) {
-  shots.push({ fx: from.x, fy: from.y, tx: to[0], ty: to[1], t: 0, dur: 0.55 + Math.hypot(to[0] - from.x, to[1] - from.y) / 220, type, onLand, spin: Math.random() * TAU });
+function launch(c, to, type, onLand) {
+  shots.push({ fx: c.x, fy: c.y - 12, tx: to[0], ty: to[1], t: 0, dur: 0.55 + Math.hypot(to[0] - c.x, to[1] - c.y) / 220, type, onLand, spin: Math.random() * TAU });
 }
-function launchIncoming(s) {
-  incoming.set(s.id, s);
+function launchIncoming(s, grp) {
   const e = chars.enemy, [wx, wy] = toWorld(s.side, s.x, s.y);
-  e.throwT = 0.3; e.ang = Math.atan2(wy - e.y, wx - e.x);
+  e.throwT = 0.3; e.dir = 'down'; e.still = 0;
   launch(e, [wx, wy], s.type, () => {
-    incoming.delete(s.id); G.splats.set(s.id, s);
-    burst(wx, wy, splatColors(s), 18, 50); shake = 0.25; sfx('splat');
+    grp.landed = true;
+    for (const q of grp.list) { incoming.delete(q.id); G.splats.set(q.id, q); }
+    burst(wx, wy, burstCols(s), 14 + grp.list.length * 6, 50 + grp.list.length * 6); shake = 0.25; sfx('splat');
   });
 }
 function enemyCleaned(s) {
   const [wx, wy] = toWorld(s.side, s.x, s.y);
   for (let i = 0; i < 6; i++) bubbles(wx, wy);
-  chars.enemy.tx = clamp(wx, 6, W - 6); chars.enemy.ty = clamp(wy, 6, HALF - 6); chars.enemy.scrub = 0.8;
+  chars.enemy.tx = clamp(wx, 6, W - 6); chars.enemy.ty = clamp(wy + 2, 6, HALF - 6); chars.enemy.scrub = 0.8;
 }
-
 function throwAt(wx, wy) {
   const p = G.players[me], enemy = other(me);
   if (!p || cooldown > 0) return;
   if (p.ammo[sel] <= 0) { toast('Bitti!', ITEMS[sel].name + ' kalmadı'); sfx('no'); return; }
   if (dirtyCount(enemy) + shots.length >= MAXSPLAT) { toast('Yeter!', 'Karşı taraf zaten leş gibi'); return; }
   const type = sel, L = lv(p).L, c = chars.me;
-  p.ammo[type]--; cooldown = 0.4; c.throwT = 0.3;
+  p.ammo[type]--; cooldown = 0.4; c.throwT = 0.3; c.dir = 'up'; c.still = 0;
   wx = clamp(wx + (Math.random() - .5) * 5, 5, W - 5); wy = clamp(wy + (Math.random() - .5) * 5, 5, HALF - 5);
-  c.ang = Math.atan2(wy - c.y, wx - c.x);
   be.savePlayer(me); sfx('throw');
   launch(c, [wx, wy], type, () => {
     const [lx, ly] = toLocal(enemy, wx, wy), it = ITEMS[type];
     const es = baseScale(lv(G.players[enemy]).L);
-    const hit = Math.abs(lx - 50) < 16 * es && Math.abs(ly - 68) < 9 * es;
-    const mult = (1 + 0.07 * (L - 1)) * (hit ? 1.25 : 1);
-    const s = { side: enemy, x: +lx.toFixed(1), y: +ly.toFixed(1), r: +(Math.min(26, it.r * mult)).toFixed(1), type, seed: (Math.random() * 1e9) | 0, by: myUid, at: Date.now() };
-    be.addSplat(s);
-    burst(wx, wy, splatColors(s), 22, 55); shake = 0.3; sfx('splat');
+    const hit = Math.abs(lx - 50) < 16 * es && Math.abs(ly - 66) < 8 * es;
+    const n = blobCount(L, type), gid = rid(), r0 = Math.min(22, it.r * (1 + 0.06 * (L - 1)) * (hit ? 1.2 : 1));
+    let first = null;
+    for (let i = 0; i < n; i++) {
+      let bx = lx, by = ly, r = r0;
+      if (i) {
+        const a = Math.random() * TAU, d = r0 * (0.9 + Math.random() * 0.9);
+        bx = clamp(lx + Math.cos(a) * d, 3, 97); by = clamp(ly + Math.sin(a) * d * 0.8, 3, 82); r = r0 * (0.5 + Math.random() * 0.3);
+      }
+      const s = { side: enemy, x: +bx.toFixed(1), y: +by.toFixed(1), r: +r.toFixed(1), type, seed: (Math.random() * 1e9) | 0, by: myUid, at: Date.now(), g: gid, lv: L };
+      be.addSplat(s); first = first || s;
+    }
+    burst(wx, wy, burstCols(first), 16 + n * 6, 50 + n * 6); shake = 0.3; sfx('splat');
     const gain = Math.round(it.xp * (1 + 0.15 * (L - 1)) * (hit ? 1.5 : 1));
     if (hit) toast('Tam isabet!', '+' + gain + ' pislik puanı');
     addXp(p, gain);
@@ -427,10 +452,11 @@ function addXp(p, gain) {
   if (after > before) {
     for (const k of ORDER) p.ammo[k] = Math.max(p.ammo[k], cap(k, after));
     const fresh = ORDER.filter(k => ITEMS[k].unlock > before && ITEMS[k].unlock <= after).map(k => ITEMS[k].name);
-    toast('Seviye ' + after + '!', fresh.length ? 'Yeni: ' + fresh.join(', ') : 'Envanter büyüdü, üs büyüdü');
+    const more = blobCount(after, 't') > blobCount(before, 't');
+    toast('Seviye ' + after + '!', fresh.length ? 'Yeni: ' + fresh.join(', ') : more ? 'Artık daha çok pislik saçıyorsun' : 'Envanter ve üs büyüdü');
     sfx('level');
-    const [bx, by] = toWorld(me, 50, 68);
-    burst(bx, by, [TEAM[me].light, '#fff', '#ffc73a'], 40, 70);
+    const [bx, by] = toWorld(me, 50, 66);
+    burst(bx, by - 6, [TEAM[me].light, '#fff', '#ffc73a'], 40, 70);
   }
   be.savePlayer(me);
 }
@@ -440,43 +466,43 @@ function ptrWorld(e) {
   const r = cv.getBoundingClientRect();
   return [(e.clientX - r.left - ox) / sc, (e.clientY - r.top - oy) / sc];
 }
+const setTarget = (wx, wy) => { chars.me.tx = clamp(wx, 5, W - 5); chars.me.ty = clamp(wy + 1.5, HALF + 6, H - 3); };
 cv.addEventListener('pointerdown', e => {
   audioInit();
   if (!started || !canPlay) return;
   try { cv.setPointerCapture(e.pointerId); } catch (err) {}
   const [wx, wy] = ptrWorld(e);
   ptr.down = true; ptr.x = wx; ptr.y = wy;
-  const dirty = dirtyCount(me) > 0;
   if (wy < HALF) {
-    if (dirty) { nudgeBanner(); sfx('no'); ptr.aiming = false; }
+    if (dirtyCount(me) > 0) { nudgeBanner(); sfx('no'); ptr.aiming = false; }
     else ptr.aiming = true;
-  } else {
-    ptr.aiming = false;
-    chars.me.tx = clamp(wx, 5, W - 5); chars.me.ty = clamp(wy, HALF + 5, H - 4);
-  }
+  } else { ptr.aiming = false; setTarget(wx, wy); }
 });
 cv.addEventListener('pointermove', e => {
   if (!ptr.down) return;
   const [wx, wy] = ptrWorld(e);
   ptr.x = wx; ptr.y = wy;
-  if (!ptr.aiming) { chars.me.tx = clamp(wx, 5, W - 5); chars.me.ty = clamp(wy, HALF + 5, H - 4); }
+  if (!ptr.aiming) setTarget(wx, wy);
 });
-function ptrUp() {
+cv.addEventListener('pointerup', () => {
   if (ptr.down && ptr.aiming && ptr.y < HALF + 4 && dirtyCount(me) === 0) throwAt(ptr.x, Math.min(ptr.y, HALF - 5));
   ptr.down = false; ptr.aiming = false;
-}
-cv.addEventListener('pointerup', ptrUp);
+});
 cv.addEventListener('pointercancel', () => { ptr.down = false; ptr.aiming = false; });
 
 /* ---------- Güncelleme ---------- */
+const dirOf = (dx, dy) => (Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up');
 function moveChar(c, dt, speed) {
   const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy);
   c.moving = d > 0.8;
   if (c.moving) {
     const step = Math.min(d, speed * dt);
     c.x += dx / d * step; c.y += dy / d * step;
-    if (c.throwT <= 0) c.ang = Math.atan2(dy, dx);
-    c.walk += dt * 11;
+    if (c.throwT <= 0) c.dir = dirOf(dx, dy);
+    c.walk += dt * 12; c.still = 0;
+  } else {
+    c.still += dt;
+    if (c.still > 0.7 && c.scrub <= 0) c.dir = c.home;
   }
   if (c.throwT > 0) c.throwT -= dt;
 }
@@ -499,9 +525,9 @@ function update(dt) {
     }
     if (best) {
       if (best._hp === undefined) best._hp = 1;
-      best._hp -= dt / (0.35 + best.r * 0.07);
-      c.scrub = 0.15;
-      if (!c.moving) c.ang = Math.atan2(best._w[1] - c.y, best._w[0] - c.x);
+      best._hp -= dt / (0.3 + best.r * 0.06);
+      c.scrub = 0.15; c.still = 0;
+      if (!c.moving) { const dx = best._w[0] - c.x, dy = best._w[1] - c.y; c.dir = Math.hypot(dx, dy) < 2 ? 'down' : dirOf(dx, dy); }
       if (Math.random() < dt * 28) bubbles(best._w[0], best._w[1]);
       if (Math.random() < dt * 9) sfx('scrub');
       if (best._hp <= 0) {
@@ -512,10 +538,9 @@ function update(dt) {
       }
     }
   }
-  // Rakip: boşta gezin
   if (e.scrub > 0) e.scrub -= dt;
   e.idle -= dt;
-  if (e.idle <= 0 && e.scrub <= 0) { e.idle = 2 + Math.random() * 3; e.tx = 30 + Math.random() * 40; e.ty = HALF - 34 - Math.random() * 16; }
+  if (e.idle <= 0 && e.scrub <= 0) { e.idle = 2.5 + Math.random() * 3; e.tx = 28 + Math.random() * 44; e.ty = HALF - 36 - Math.random() * 12; }
 
   for (let i = shots.length - 1; i >= 0; i--) {
     const s = shots[i]; s.t += dt / s.dur;
@@ -528,212 +553,364 @@ function update(dt) {
   }
 }
 
-/* ---------- Çizim ---------- */
-function rr(x, y, w, h, r) {
-  ctx.beginPath(); ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+/* ---------- Karakter çizimi: kartlara göre ön / arka / yan ---------- */
+function fig(g, key, dir, a) {
+  const d = CH[key], isCap = key === 'cap', w = d.w, hw = w / 2;
+  const sw = a.moving ? Math.sin(a.walk) : 0, bob = a.moving ? Math.abs(sw) * 0.35 : Math.sin(a.t * 3) * 0.12;
+  const th = a.throwT > 0 ? Math.sin((1 - a.throwT / 0.3) * Math.PI) : 0, scrub = a.scrub > 0, m = Math.sin(a.t * 24) * 1.6;
+  const S = lw => { g.lineWidth = lw || 0.42; g.strokeStyle = INK; g.stroke(); };
+  const F = c => { g.fillStyle = c; g.fill(); };
+  const E = (x, y, rx, ry, c, lw) => { g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, TAU); F(c); S(lw); };
+  const R = (x, y, ww, h, r, c, lw) => { rr(x, y, ww, h, r, g); F(c); S(lw); };
+  const mop = (x1, y1, x2, y2) => {
+    g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.lineWidth = 0.7; g.strokeStyle = '#8a5a2b'; g.stroke();
+    R(x2 - 2.7, y2 - 0.9, 5.4, 1.9, 0.7, '#e6eef5', 0.35);
+  };
+  const rx = isCap ? 2.9 : 3.3, ry = isCap ? 3.1 : 3.2, hy = -14.6, HAIR = '#2e1f17', CAPC = '#232327';
+  const shades = (x, y, ww) => { R(x, y, ww, 1.2, 0.45, '#0d0e14', 0.3); g.fillStyle = 'rgba(150,170,220,.6)'; g.fillRect(x + 0.35, y + 0.25, ww * 0.3, 0.25); };
+  g.save(); g.lineJoin = 'round'; g.lineCap = 'round';
+  if (dir === 'left') g.scale(-1, 1);
+
+  if (dir === 'up' || dir === 'down') {
+    const back = dir === 'up', lw_ = w * 0.4;
+    if (scrub && back) mop(hw * 0.3, -8, hw + 2.8 + m, -3.4);
+    for (const sg of [-1, 1]) { // bacaklar + ayakkabılar
+      const lift = Math.max(0, sg * sw) * 0.9, x = sg < 0 ? -lw_ - 0.1 : 0.1;
+      R(x, -6.4, lw_, 5.3 - lift, 0.6, d.pants);
+      if (!isCap) { rr(sg < 0 ? x + 0.25 : x + lw_ - 1.45, -4.7, 1.2, 1.6, 0.2, g); S(0.25); }
+      E(x + lw_ / 2, -0.75 - lift, lw_ / 2 + 0.35, 0.95, d.shoe, 0.35);
+    }
+    g.translate(0, -bob);
+    if (!isCap) R(back ? -hw - 1.0 : hw - 0.7, -8.3, 1.8, 2.6, 0.5, '#2a2a2e', 0.35); // çanta
+    const arm = (sg, raise, watch) => {
+      const x = sg * (hw + 0.35) - 0.8, dy = sg * sw * 0.5;
+      if (raise > 0.05) {
+        R(x + 0.15, -11.2 - raise * 4.6, 1.3, 1.4 + raise * 4.6, 0.6, d.skin, 0.35);
+        E(x + 0.8, -11.4 - raise * 4.8, 0.95, 0.95, d.skin, 0.35);
+        R(x - 0.1, -11.5, 1.8, 2.3, 0.7, d.tee, 0.35);
+        return [x + 0.8, -11.4 - raise * 4.8];
+      }
+      const up = scrub ? -1.2 : 0;
+      R(x + 0.15, -9.6 + dy + up, 1.3, 3.2, 0.6, d.skin, 0.35);
+      if (watch) { g.fillStyle = '#111'; g.fillRect(x + 0.1, -7.5 + dy + up, 1.4, 0.6); }
+      E(x + 0.8, -6.2 + dy + up, 0.9, 0.9, d.skin, 0.35);
+      R(x - 0.1, -11.4, 1.8, 2.6, 0.7, d.tee, 0.35);
+      return [x + 0.8, -6.2 + dy + up];
+    };
+    const hr = back ? 1 : -1;
+    const hand = arm(hr, scrub ? 0 : th, false); arm(-hr, 0, !isCap);
+    R(-hw, -11.7, w, 6.3, 1.7, d.tee); // tişört
+    if (!isCap) {
+      g.beginPath();
+      if (back) { g.moveTo(hw - 0.7, -11.2); g.lineTo(-hw + 0.4, -6.6); } else { g.moveTo(-hw + 0.7, -11.2); g.lineTo(hw - 0.4, -6.6); }
+      g.lineWidth = 0.9; g.strokeStyle = '#46464c'; g.stroke();
+      if (!back) { g.beginPath(); g.arc(1.1, -9.3, 0.95, Math.PI, TAU); g.closePath(); F('#e8672a'); g.fillStyle = '#f2b23a'; g.fillRect(0.1, -9.1, 2, 0.3); }
+    }
+    if (a.hold && th < 0.05 && !scrub) E(hand[0], hand[1] - 0.2, 1.25, 1.25, ITEMS[a.hold].col, 0.3);
+    R(-0.9, hy + ry - 0.9, 1.8, 1.7, 0.4, d.skin, 0.35); // boyun
+    E(-rx + 0.1, hy + 0.4, 0.75, 0.9, d.skin, 0.35); E(rx - 0.1, hy + 0.4, 0.75, 0.9, d.skin, 0.35); // kulaklar
+    E(0, hy, rx, ry, d.skin);
+    if (!back) {
+      if (isCap) { // sakal
+        g.save(); g.beginPath(); g.ellipse(0, hy, rx - 0.2, ry - 0.2, 0, 0, TAU); g.clip();
+        g.fillStyle = '#6b4a2a'; g.fillRect(-4, hy + 0.9, 8, 4);
+        g.fillStyle = d.skin; g.beginPath(); g.ellipse(0, hy + 0.9, 1.5, 0.85, 0, 0, TAU); g.fill();
+        g.restore();
+        g.beginPath(); g.moveTo(-0.7, hy + 2.05); g.lineTo(0.7, hy + 2.05); S(0.35);
+      } else { g.beginPath(); g.arc(0, hy + 1.15, 1.3, 0.3, Math.PI - 0.3); S(0.35); }
+      for (const sg of [-1, 1]) { E(sg * 1.02, hy - 0.5, 1.08, 1.08, '#fff', 0.35); g.beginPath(); g.arc(sg * 0.85, hy - 0.4, 0.24, 0, TAU); F(INK); }
+      g.beginPath(); g.ellipse(0.15, hy + 0.75, 0.6, 0.42, 0, 0, TAU); F(d.skin); S(0.3);
+      if (isCap) { // ters şapka: önde ayar bandı, üstte güneş gözlüğü
+        g.beginPath(); g.ellipse(0, hy - 1.4, rx + 0.3, 2.3, 0, Math.PI, TAU); g.closePath(); F(CAPC); S();
+        g.beginPath(); g.ellipse(0, hy - 1.4, 1.25, 0.8, 0, Math.PI, TAU); g.closePath(); F(d.skin); S(0.3);
+        R(-1.35, hy - 1.95, 2.7, 0.5, 0.2, '#47474d', 0.25);
+        shades(-2.3, hy - 4.5, 2.1); shades(0.2, hy - 4.5, 2.1);
+      } else { // dağınık saç
+        g.beginPath();
+        for (let i = 0; i <= 9; i++) {
+          const an = Math.PI + 0.1 + (Math.PI - 0.2) * i / 9, rad = i % 2 ? 1.0 : 0.25, x = Math.cos(an) * (rx + rad), y = hy - 0.4 + Math.sin(an) * (ry + rad * 1.1);
+          i ? g.lineTo(x, y) : g.moveTo(x, y);
+        }
+        for (const [x, y] of [[2.6, -2.0], [1.6, -1.6], [0.8, -2.4], [-0.1, -1.7], [-1.0, -2.5], [-1.9, -1.7], [-2.9, -2.0]]) g.lineTo(x, hy + y);
+        g.closePath(); F(HAIR); S();
+      }
+    } else if (isCap) { // arkadan: kubbe + enseye inen siper
+      g.beginPath(); g.ellipse(0, hy + 1.3, rx - 0.5, 1.5, 0, 0, Math.PI); F('#3a2a1c');
+      E(0, hy - 0.5, rx + 0.3, 2.9, CAPC);
+      R(-2.0, hy + 1.2, 4.0, 1.9, 0.9, '#2e2e33');
+      g.beginPath(); g.moveTo(0, hy - 3.3); g.lineTo(0, hy + 1.2); g.lineWidth = 0.25; g.strokeStyle = '#45454b'; g.stroke();
+      shades(-2.3, hy - 4.4, 2.1); shades(0.2, hy - 4.4, 2.1);
+    } else {
+      g.beginPath();
+      for (let i = 0; i < 16; i++) {
+        const an = TAU * i / 16 - Math.PI / 2, lo = Math.sin(an) > 0.4 ? 0.45 : 1, rad = (i % 2 ? 0.2 : 1.05) * lo, x = Math.cos(an) * (rx + rad), y = hy - 0.3 + Math.sin(an) * (ry + rad);
+        i ? g.lineTo(x, y) : g.moveTo(x, y);
+      }
+      g.closePath(); F(HAIR); S();
+    }
+    if (scrub && !back) mop(0, -7.6 + bob, m, 2.4 + bob);
+  } else { // yan görünüş (sağa bakar; sol için aynalanır)
+    const bw = w * 0.62;
+    for (const sg of [-1, 1]) {
+      const off = sg * sw * 1.5;
+      R(-1.0 + off, -6.4, 2.0, 5.3, 0.6, d.pants);
+      E(0.35 + off, -0.75, 1.65, 0.95, d.shoe, 0.35);
+    }
+    g.translate(0, -bob);
+    if (!isCap) R(-bw / 2 - 1.3, -8.4, 1.9, 2.7, 0.5, '#2a2a2e', 0.35);
+    R(-bw / 2, -11.7, bw, 6.3, 1.7, d.tee);
+    if (!isCap) { g.beginPath(); g.moveTo(-bw / 2 + 0.5, -11.0); g.lineTo(-bw / 2 + 0.3, -7.4); g.lineWidth = 0.9; g.strokeStyle = '#46464c'; g.stroke(); }
+    g.save(); g.translate(0.1, -10.9); g.rotate(scrub ? -0.9 : th > 0.05 ? -th * 2.5 : sw * 0.5);
+    R(-0.7, 1.5, 1.4, 3.2, 0.6, d.skin, 0.35); E(0, 4.9, 0.9, 0.9, d.skin, 0.35); R(-0.95, -0.5, 1.9, 2.6, 0.7, d.tee, 0.35);
+    if (a.hold && th < 0.05 && !scrub) E(0.2, 5.7, 1.25, 1.25, ITEMS[a.hold].col, 0.3);
+    g.restore();
+    R(-0.9, hy + ry - 0.9, 1.8, 1.7, 0.4, d.skin, 0.35);
+    g.beginPath(); g.ellipse(rx + 0.45, hy + 0.7, 1.0, 0.55, 0, 0, TAU); F(d.skin); S(0.35); // burun
+    E(0, hy, rx, ry, d.skin);
+    if (isCap) {
+      g.save(); g.beginPath(); g.ellipse(0, hy, rx - 0.2, ry - 0.2, 0, 0, TAU); g.clip();
+      g.fillStyle = '#6b4a2a'; g.beginPath(); g.moveTo(-0.7, hy + 0.5); g.lineTo(rx, hy + 1.3); g.lineTo(rx, hy + 4); g.lineTo(-1.6, hy + 4); g.closePath(); g.fill();
+      g.restore();
+      g.beginPath(); g.moveTo(1.7, hy + 2.05); g.lineTo(2.6, hy + 2.05); S(0.35);
+    } else { g.beginPath(); g.arc(1.9, hy + 1.2, 0.9, 0.3, 1.7); S(0.35); }
+    E(1.55, hy - 0.5, 1.08, 1.08, '#fff', 0.35); g.beginPath(); g.arc(2.0, hy - 0.45, 0.24, 0, TAU); F(INK);
+    E(-0.6, hy + 0.5, 0.7, 0.9, d.skin, 0.35);
+    if (isCap) {
+      R(-rx - 2.3, hy - 1.75, 2.9, 0.95, 0.45, '#2e2e33');
+      g.beginPath(); g.ellipse(-0.2, hy - 1.4, rx + 0.3, 2.3, 0, Math.PI, TAU); g.closePath(); F(CAPC); S();
+      R(1.7, hy - 1.95, 1.3, 0.5, 0.2, '#47474d', 0.25);
+      shades(-0.9, hy - 4.4, 2.7);
+      g.beginPath(); g.moveTo(-0.9, hy - 3.8); g.lineTo(-2.3, hy - 3.2); g.lineWidth = 0.3; g.strokeStyle = '#0d0e14'; g.stroke();
+    } else {
+      g.beginPath();
+      for (let i = 0; i <= 9; i++) {
+        const an = -0.35 - (Math.PI + 0.55) * i / 9, rad = i % 2 ? 1.0 : 0.2, x = Math.cos(an) * (rx + rad) - 0.2, y = hy - 0.3 + Math.sin(an) * (ry + rad);
+        i ? g.lineTo(x, y) : g.moveTo(x, y);
+      }
+      g.lineTo(-1.2, hy + 0.9); g.lineTo(-0.4, hy - 0.9); g.lineTo(1.2, hy - 1.9); g.lineTo(2.4, hy - 1.7);
+      g.closePath(); F(HAIR); S();
+    }
+    if (scrub) mop(2.6, -7.4 + bob, 5.6 + m, 0.7 + bob);
+  }
+  g.restore();
 }
-function drawField() {
+function drawChar(c, side, holding) {
+  const t = TEAM[side];
+  ctx.save(); ctx.translate(c.x, c.y);
+  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 0, 6.2, 2.3, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = t.main; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.ellipse(0, 0, 7.4, 2.9, 0, 0, TAU); ctx.stroke();
+  ctx.save(); ctx.scale(1.3, 1.3);
+  fig(ctx, chOf(side), c.dir, { walk: c.walk, moving: c.moving, throwT: c.throwT, scrub: c.scrub, t: time, hold: holding });
+  ctx.restore();
+  ctx.font = '800 3.1px "Baloo 2", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.lineWidth = 0.9; ctx.strokeStyle = INK; ctx.lineJoin = 'round';
+  const nm = nameOf(side);
+  ctx.strokeText(nm, 0, -26.5); ctx.fillStyle = t.light; ctx.fillText(nm, 0, -26.5);
+  ctx.restore();
+}
+
+/* ---------- Sahne çizimi ---------- */
+const DECOR = (() => {
+  const R = rng(11), tufts = [], flowers = [], patches = [], cols = ['#fff', '#ffd84a', '#ff9dbd', '#cdb0ff'];
+  for (let i = 0; i < 170; i++) tufts.push({ x: -14 + R() * 128, y: -14 + R() * 198, s: 0.6 + R() * 0.7 });
+  for (let i = 0; i < 46; i++) flowers.push({ x: -14 + R() * 128, y: -14 + R() * 198, c: cols[(R() * 4) | 0] });
+  for (let i = 0; i < 16; i++) patches.push({ x: -10 + R() * 120, y: -10 + R() * 190, rx: 9 + R() * 13, ry: 4 + R() * 6 });
+  return { tufts, flowers, patches };
+})();
+function drawGround() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = '#5fa644'; ctx.fillRect(0, 0, cw, ch);
+  ctx.fillStyle = '#7dbb4b'; ctx.fillRect(0, 0, cw, ch);
   const sx = reduceMotion || shake <= 0 ? 0 : (Math.random() - .5) * shake * 10, sy = reduceMotion || shake <= 0 ? 0 : (Math.random() - .5) * shake * 10;
   ctx.setTransform(sc * dpr, 0, 0, sc * dpr, (ox + sx) * dpr, (oy + sy) * dpr);
-  ctx.fillStyle = '#569c3c';
-  for (let i = -6, n = 0; i < 16; i++, n++) if (n % 2 === 0) ctx.fillRect(-300, i * 17, 700, 17);
-  // saha sınırı
-  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 0.7;
-  rr(1.5, 1.5, W - 3, H - 3, 4); ctx.stroke();
-  // orta çizgi: çit
-  ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 0.9; ctx.setLineDash([3, 2.4]);
-  ctx.beginPath(); ctx.moveTo(1.5, HALF); ctx.lineTo(W - 1.5, HALF); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = '#8a5a2b';
-  for (let x = 5; x < W; x += 10) { ctx.beginPath(); ctx.arc(x, HALF, 1.3, 0, TAU); ctx.fill(); }
-  ctx.fillStyle = '#c08a4e';
-  for (let x = 5; x < W; x += 10) { ctx.beginPath(); ctx.arc(x - 0.3, HALF - 0.3, 0.7, 0, TAU); ctx.fill(); }
-}
-function drawBase(side) {
-  const L = lv(G.players[side]).L, s = baseScale(L), t = TEAM[side];
-  const [cx, cy] = toWorld(side, 50, 68), dir = side === view ? -1 : 1;
-  const hw = 16 * s, hh = 9 * s;
-  ctx.fillStyle = 'rgba(0,0,0,.16)'; rr(cx - hw - 1, cy - hh + 1.5, 2 * hw + 2, 2 * hh + 1.5, 3.5); ctx.fill();
-  if (L >= 5) {
-    for (const [px, py] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
-      ctx.fillStyle = t.dark; ctx.beginPath(); ctx.arc(cx + px * hw, cy + py * hh, 3.6 * s, 0, TAU); ctx.fill();
-      ctx.fillStyle = L >= 8 ? '#ffd24a' : t.light; ctx.beginPath(); ctx.arc(cx + px * hw, cy + py * hh, 2.1 * s, 0, TAU); ctx.fill();
+  ctx.fillStyle = 'rgba(70,140,50,.35)';
+  for (const p of DECOR.patches) { ctx.beginPath(); ctx.ellipse(p.x, p.y, p.rx, p.ry, 0, 0, TAU); ctx.fill(); }
+  // avlular (toprak) ve domates tarhları
+  for (const side of ['A', 'B']) {
+    const [yx, yy] = toWorld(side, 50, 42);
+    ctx.fillStyle = '#c9a065'; ctx.beginPath(); ctx.ellipse(yx, yy, 24, 10, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#d8b47a'; ctx.beginPath(); ctx.ellipse(yx - 1, yy - 0.8, 21, 8, 0, 0, TAU); ctx.fill();
+    const [x1, y1] = toWorld(side, 4, 56), [x2, y2] = toWorld(side, 18, 78);
+    const bx = Math.min(x1, x2), by = Math.min(y1, y2), bw = Math.abs(x2 - x1), bh = Math.abs(y2 - y1);
+    ctx.fillStyle = '#8a5a34'; rr(bx, by, bw, bh, 1.5); ctx.fill(); ctx.strokeStyle = '#6a4222'; ctx.lineWidth = 0.5; ctx.stroke();
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 4; j++) {
+      const px = bx + bw * (i + 0.5) / 3, py = by + bh * (j + 0.6) / 4;
+      ctx.fillStyle = '#3f8f2f'; ctx.beginPath(); ctx.arc(px, py - 1, 1.9, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#5fb044'; ctx.beginPath(); ctx.arc(px - 0.5, py - 1.5, 1.1, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#e5372b'; ctx.beginPath(); ctx.arc(px + 0.9, py - 0.4, 0.6, 0, TAU); ctx.arc(px - 0.9, py - 0.1, 0.5, 0, TAU); ctx.fill();
     }
   }
-  ctx.fillStyle = t.main; rr(cx - hw, cy - hh, 2 * hw, 2 * hh, 3); ctx.fill();
-  ctx.fillStyle = t.light; rr(cx - hw, cy - hh, 2 * hw, hh, 3); ctx.fill();
-  ctx.fillStyle = t.main; ctx.fillRect(cx - hw, cy - 1.5, 2 * hw, 1.5);
-  ctx.strokeStyle = t.dark; ctx.lineWidth = 0.9; rr(cx - hw, cy - hh, 2 * hw, 2 * hh, 3); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx - hw, cy); ctx.lineTo(cx + hw, cy); ctx.stroke();
-  // çatı kiremit çizgileri
-  ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = 0.4;
-  for (let x = cx - hw + 4; x < cx + hw - 1; x += 4) { ctx.beginPath(); ctx.moveTo(x, cy - hh + 1); ctx.lineTo(x, cy + hh - 1); ctx.stroke(); }
-  // kapı: orta çizgiye bakan kenarda
-  ctx.fillStyle = '#5a3716'; rr(cx - 2.6 * s, cy + dir * hh - (dir < 0 ? 0 : 2.4 * s) - (dir < 0 ? 0.6 : -0.6), 5.2 * s, 2.4 * s, 1); ctx.fill();
-  if (L >= 3) { // bayrak
-    const fx = cx + hw * 0.55, fy = cy, wave = Math.sin(time * 4) * 0.8;
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(fx, fy, 1, 0, TAU); ctx.fill();
-    ctx.fillStyle = L >= 8 ? '#ffd24a' : '#e5372b';
-    ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + 6 * s, fy - 1.5 + wave); ctx.lineTo(fx + 5 * s, fy + 2.5 + wave); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#5c9c3a'; ctx.lineWidth = 0.35; ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (const t of DECOR.tufts) { ctx.moveTo(t.x - t.s, t.y); ctx.lineTo(t.x - t.s * 1.3, t.y - t.s * 1.6); ctx.moveTo(t.x, t.y); ctx.lineTo(t.x, t.y - t.s * 2); ctx.moveTo(t.x + t.s, t.y); ctx.lineTo(t.x + t.s * 1.3, t.y - t.s * 1.6); }
+  ctx.stroke();
+  for (const f of DECOR.flowers) {
+    ctx.fillStyle = f.c; ctx.beginPath(); ctx.arc(f.x, f.y, 0.75, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#e8a91c'; ctx.beginPath(); ctx.arc(f.x, f.y, 0.3, 0, TAU); ctx.fill();
   }
-  ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.font = '800 ' + 4.2 * s + 'px "Baloo 2", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('Sv ' + L, cx - hw * 0.45, cy - dir * hh * 0.5);
+}
+function drawFence() {
+  ctx.lineCap = 'round';
+  for (const dy of [-3.3, -1.5]) {
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-16, HALF + dy); ctx.lineTo(W + 16, HALF + dy); ctx.stroke();
+    ctx.strokeStyle = '#c08a4e'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(-16, HALF + dy); ctx.lineTo(W + 16, HALF + dy); ctx.stroke();
+  }
+  for (let x = -14; x <= W + 14; x += 8) {
+    ctx.fillStyle = '#a06c36'; rr(x - 0.8, HALF - 5, 1.6, 5.4, 0.5); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 0.35; ctx.stroke();
+    ctx.fillStyle = '#c99a5c'; ctx.fillRect(x - 0.45, HALF - 4.6, 0.5, 4.4);
+  }
+}
+function drawTree(x, y) {
+  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(x, y, 6, 2.2, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#7a4a22'; rr(x - 1.3, y - 8, 2.6, 8, 0.8); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 0.4; ctx.stroke();
+  for (const [dx, dy, r, c] of [[0, -13, 6.5, '#3f8f2f'], [-3.5, -10, 4.5, '#3f8f2f'], [3.5, -10.5, 4.5, '#3f8f2f'], [-1, -14.5, 4, '#5fb044']]) {
+    ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + dx, y + dy, r, 0, TAU); ctx.fill();
+    if (c === '#3f8f2f') { ctx.strokeStyle = INK; ctx.lineWidth = 0.4; ctx.stroke(); }
+  }
+  ctx.fillStyle = '#3f8f2f'; ctx.beginPath(); ctx.arc(x, y - 12, 5.6, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#5fb044'; ctx.beginPath(); ctx.arc(x - 1.5, y - 14, 3.4, 0, TAU); ctx.fill();
+}
+function houseGeo(side) {
+  const L = lv(G.players[side]).L, s = baseScale(L), [cx, cy] = toWorld(side, 50, 66);
+  return { L, s, cx, cy, hw: 16 * s, hh: 8 * s };
+}
+function drawHouse(side) {
+  const { L, s, cx, cy, hw, hh } = houseGeo(side), t = TEAM[side];
+  const wallTop = cy - hh * 0.05, bottom = cy + hh, roofTop = cy - hh - 3.5 * s, eave = wallTop + 1.2;
+  const ink = w => { ctx.strokeStyle = INK; ctx.lineWidth = w || 0.5; ctx.stroke(); };
+  ctx.lineJoin = 'round';
+  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(cx, bottom, hw + 3, 2.4 * s, 0, 0, TAU); ctx.fill();
+  if (L >= 5) { // silo
+    const sx = cx + hw + 2.6 * s, top = cy - hh * 0.7;
+    ctx.fillStyle = '#d9c9a8'; rr(sx - 3 * s, top, 6 * s, bottom - top, 1); ctx.fill(); ink();
+    ctx.strokeStyle = 'rgba(90,60,30,.4)'; ctx.lineWidth = 0.3;
+    for (let y = top + 2.5; y < bottom - 1; y += 2.5) { ctx.beginPath(); ctx.moveTo(sx - 3 * s, y); ctx.lineTo(sx + 3 * s, y); ctx.stroke(); }
+    ctx.fillStyle = L >= 8 ? '#ffd24a' : t.main; ctx.beginPath(); ctx.moveTo(sx - 3.8 * s, top + 0.6); ctx.lineTo(sx, top - 5 * s); ctx.lineTo(sx + 3.8 * s, top + 0.6); ctx.closePath(); ctx.fill(); ink();
+  }
+  // ön duvar
+  ctx.fillStyle = '#d6a468'; rr(cx - hw + 1, wallTop, 2 * hw - 2, bottom - wallTop, 1); ctx.fill(); ink();
+  ctx.strokeStyle = 'rgba(100,60,25,.35)'; ctx.lineWidth = 0.3;
+  for (let y = eave + 2; y < bottom - 0.8; y += 2) { ctx.beginPath(); ctx.moveTo(cx - hw + 1.4, y); ctx.lineTo(cx + hw - 1.4, y); ctx.stroke(); }
+  const dw = 4.6 * s, dh = 5.8 * s;
+  ctx.fillStyle = '#7a4a22'; rr(cx - dw / 2, bottom - dh, dw, dh, 1.2); ctx.fill(); ink();
+  ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.arc(cx + dw * 0.28, bottom - dh * 0.45, 0.45, 0, TAU); ctx.fill();
+  for (const sg of [-1, 1]) {
+    const wx = cx + sg * hw * 0.56, ww = 4 * s, wh = 3.2 * s, wy = bottom - dh + 0.3 * s;
+    ctx.fillStyle = '#bfe6f5'; rr(wx - ww / 2, wy, ww, wh, 0.6); ctx.fill(); ink(0.45);
+    ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx, wy + wh); ctx.moveTo(wx - ww / 2, wy + wh / 2); ctx.lineTo(wx + ww / 2, wy + wh / 2); ink(0.3);
+  }
+  if (L >= 3) { // baca + duman
+    const bx = cx + hw * 0.5, by = roofTop + 1.5 * s;
+    for (let i = 0; i < 3; i++) {
+      const ph = (time * 0.5 + i / 3) % 1;
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.5 * (1 - ph)).toFixed(2) + ')';
+      ctx.beginPath(); ctx.arc(bx + Math.sin(ph * 5 + i) * 1.2, by - 3 * s - ph * 9, 1 + ph * 1.8, 0, TAU); ctx.fill();
+    }
+    ctx.fillStyle = '#a5563f'; rr(bx - 1.3 * s, by - 3 * s, 2.6 * s, 4.5 * s, 0.4); ctx.fill(); ink();
+  }
+  // çatı
+  ctx.beginPath(); ctx.moveTo(cx - hw - 1.6, eave); ctx.lineTo(cx + hw + 1.6, eave); ctx.lineTo(cx + hw - 2.5 * s, roofTop); ctx.lineTo(cx - hw + 2.5 * s, roofTop); ctx.closePath();
+  ctx.fillStyle = t.main; ctx.fill(); ink(0.6);
+  for (let i = 1; i < 4; i++) {
+    const k = i / 4, y = roofTop + (eave - roofTop) * k, ins = (1 - k) * (2.5 * s + 1.6) - 1.6;
+    ctx.strokeStyle = t.dark; ctx.lineWidth = 0.4; ctx.beginPath(); ctx.moveTo(cx - hw + ins + 0.4, y); ctx.lineTo(cx + hw - ins - 0.4, y); ctx.stroke();
+  }
+  ctx.strokeStyle = L >= 8 ? '#ffd24a' : t.light; ctx.lineWidth = 1; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(cx - hw + 2.5 * s + 0.8, roofTop + 0.8); ctx.lineTo(cx + hw - 2.5 * s - 0.8, roofTop + 0.8); ctx.stroke();
+  ctx.strokeStyle = t.dark; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(cx - hw - 1.2, eave); ctx.lineTo(cx + hw + 1.2, eave); ctx.stroke();
+  if (L >= 3) { // bayrak
+    const fx = cx - hw * 0.55, fy = roofTop, wave = Math.sin(time * 4) * 0.7;
+    ctx.strokeStyle = INK; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(fx, fy + 1); ctx.lineTo(fx, fy - 7 * s); ctx.stroke();
+    ctx.fillStyle = L >= 8 ? '#ffd24a' : '#e5372b'; ctx.beginPath(); ctx.moveTo(fx, fy - 7 * s); ctx.lineTo(fx + 5 * s, fy - 5.8 * s + wave); ctx.lineTo(fx, fy - 4.4 * s); ctx.closePath(); ctx.fill(); ink(0.4);
+  }
+  // seviye tabelası
+  const px = cx - hw - 3.2, py = bottom + 0.6;
+  ctx.fillStyle = '#a06c36'; ctx.fillRect(px - 0.4, py - 5.5, 0.8, 5.5);
+  ctx.fillStyle = '#f1dfae'; rr(px - 3.6, py - 8.6, 7.2, 3.8, 0.7); ctx.fill(); ink(0.4);
+  ctx.fillStyle = INK; ctx.font = '800 2.6px "Baloo 2", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('Sv ' + L, px, py - 6.6);
 }
 function shapeOf(s) {
   if (s._sh) return s._sh;
-  const R = rng(s.seed), lobes = [], drops = [], seeds = [];
+  const R = rng(s.seed), lobes = [], drops = [], seeds = [], k = Math.min(8, s.lv || 1);
   for (let i = 0; i < 14; i++) lobes.push(0.7 + R() * 0.5);
-  for (let i = 0, n = 5 + Math.floor(R() * 6); i < n; i++) drops.push({ a: R() * TAU, d: 1.15 + R() * 0.85, r: 0.1 + R() * 0.2 });
+  for (let i = 0, n = 4 + k * 2 + Math.floor(R() * 4); i < n; i++) drops.push({ a: R() * TAU, d: 1.15 + R() * (0.7 + k * 0.12), r: 0.09 + R() * 0.2 });
   for (let i = 0; i < 7; i++) seeds.push({ a: R() * TAU, d: R() * 0.55 });
   return (s._sh = { lobes, drops, seeds });
 }
 function blobPath(r, lobes) {
   const n = lobes.length, pt = i => { const a = (i % n) / n * TAU, q = r * lobes[i % n]; return [Math.cos(a) * q, Math.sin(a) * q]; };
   ctx.beginPath();
-  let [px, py] = pt(0), [qx, qy] = pt(1);
+  const [px, py] = pt(0), [qx, qy] = pt(1);
   ctx.moveTo((px + qx) / 2, (py + qy) / 2);
-  for (let i = 1; i <= n; i++) {
-    const [ax, ay] = pt(i), [bx, by] = pt(i + 1);
-    ctx.quadraticCurveTo(ax, ay, (ax + bx) / 2, (ay + by) / 2);
-  }
+  for (let i = 1; i <= n; i++) { const [ax, ay] = pt(i), [bx, by] = pt(i + 1); ctx.quadraticCurveTo(ax, ay, (ax + bx) / 2, (ay + by) / 2); }
   ctx.closePath();
 }
 function drawSplat(s) {
   const sh = shapeOf(s), hp = s._hp === undefined ? 1 : Math.max(0, s._hp);
   const [wx, wy] = toWorld(s.side, s.x, s.y), [col, dark] = splatColors(s);
   const age = Math.min(1, (Date.now() - s.at) / 180), r = s.r * (0.45 + 0.55 * hp) * (0.6 + 0.4 * age);
-  ctx.save(); ctx.translate(wx, wy); ctx.globalAlpha = 0.35 + 0.65 * hp;
+  ctx.save(); ctx.translate(wx, wy); ctx.scale(1, 0.8); ctx.globalAlpha = 0.35 + 0.65 * hp;
   ctx.fillStyle = dark;
   for (const d of sh.drops) { ctx.beginPath(); ctx.arc(Math.cos(d.a) * r * d.d, Math.sin(d.a) * r * d.d, r * d.r, 0, TAU); ctx.fill(); }
   blobPath(r, sh.lobes); ctx.fill();
   ctx.fillStyle = col; blobPath(r * 0.86, sh.lobes); ctx.fill();
-  if (s.type === 't') {
+  if (s.type === 't') { // domates: sulu iç + çekirdekler
+    ctx.fillStyle = '#ff6a55'; blobPath(r * 0.5, sh.lobes); ctx.fill();
     ctx.fillStyle = '#f6d27a';
-    for (const d of sh.seeds) { ctx.beginPath(); ctx.ellipse(Math.cos(d.a) * r * d.d, Math.sin(d.a) * r * d.d, r * 0.07, r * 0.04, d.a, 0, TAU); ctx.fill(); }
-  } else if (s.type === 'e') {
-    ctx.fillStyle = '#b7c23f'; ctx.beginPath(); ctx.arc(r * 0.1, -r * 0.05, r * 0.36, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#d9e06a'; ctx.beginPath(); ctx.arc(r * 0.02, -r * 0.13, r * 0.14, 0, TAU); ctx.fill();
-  } else if (s.type === 'm') {
+    for (const d of sh.seeds) { ctx.beginPath(); ctx.ellipse(Math.cos(d.a) * r * d.d, Math.sin(d.a) * r * d.d, r * 0.08, r * 0.045, d.a, 0, TAU); ctx.fill(); }
+  } else if (s.type === 'e') { // çürük yumurta: ak + yeşilimsi sarı
+    ctx.fillStyle = '#e8a91c'; ctx.beginPath(); ctx.arc(r * 0.1, -r * 0.05, r * 0.38, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#b7c23f'; ctx.beginPath(); ctx.arc(r * 0.18, r * 0.02, r * 0.22, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#f6c84a'; ctx.beginPath(); ctx.arc(-r * 0.02, -r * 0.16, r * 0.12, 0, TAU); ctx.fill();
+  } else if (s.type === 'm') { // çamur: koyu topaklar
     ctx.fillStyle = dark;
-    for (const d of sh.seeds) { ctx.beginPath(); ctx.arc(Math.cos(d.a) * r * d.d, Math.sin(d.a) * r * d.d, r * 0.09, 0, TAU); ctx.fill(); }
+    for (const d of sh.seeds) { ctx.beginPath(); ctx.arc(Math.cos(d.a) * r * d.d, Math.sin(d.a) * r * d.d, r * 0.1, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = '#9a6a3c'; ctx.beginPath(); ctx.ellipse(r * 0.15, r * 0.2, r * 0.25, r * 0.12, 0.4, 0, TAU); ctx.fill();
   }
-  ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.beginPath(); ctx.ellipse(-r * 0.3, -r * 0.34, r * 0.22, r * 0.11, -0.6, 0, TAU); ctx.fill();
-  ctx.restore();
-}
-const INK = '#1b1714';
-const HAIR_PTS = (() => {
-  const pts = [], n = 22;
-  for (let i = 0; i < n; i++) {
-    const a = i / n * TAU, r = i % 2 ? 2.75 : 3.75 + ((i * 7) % 5) * 0.12;
-    let x = Math.cos(a) * r, y = 0.15 + Math.sin(a) * r;
-    if (y < -1.5) y = -1.5 - (i % 2 ? 0 : 0.75);
-    pts.push([x, y]);
-  }
-  return pts;
-})();
-function drawChar(c, side, holding) {
-  const A = side === 'A', t = TEAM[side], k = 1.5, sw = c.moving ? Math.sin(c.walk) : 0;
-  const skin = A ? '#f0b877' : '#f5c49a', bw = A ? 4.3 : 5.1, bh = A ? 2.8 : 3.4;
-  ctx.save(); ctx.translate(c.x, c.y);
-  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(0.6, 1.2, (bw + 0.9) * k, 3.8 * k, 0, 0, TAU); ctx.fill();
-  ctx.strokeStyle = t.main; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.ellipse(0, 0.4, (bw + 1.6) * k, 4.6 * k, 0, 0, TAU); ctx.stroke();
-  ctx.rotate(c.ang + Math.PI / 2); ctx.scale(k, k);
-  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  const ink = w => { ctx.strokeStyle = INK; ctx.lineWidth = w || 0.42; ctx.stroke(); };
-  const bob = c.moving ? Math.abs(sw) * 0.25 : Math.sin(time * 3) * 0.12;
-  // ayakkabılar
-  ctx.fillStyle = A ? '#ece7dc' : '#2c2c30';
-  ctx.beginPath(); ctx.ellipse(-1.7, 0.4 + sw * 1.8, 1.15, 1.7, 0, 0, TAU); ctx.fill(); ink(0.35);
-  ctx.beginPath(); ctx.ellipse(1.7, 0.4 - sw * 1.8, 1.15, 1.7, 0, 0, TAU); ctx.fill(); ink(0.35);
-  // paspas
-  const scrubbing = c.scrub > 0;
-  if (scrubbing) {
-    const m = Math.sin(time * 26) * 1.8;
-    ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = 0.7;
-    ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(m * 0.4, -8); ctx.stroke();
-    ctx.fillStyle = '#dfe9f2'; rr(m * 0.4 - 3.2, -10, 6.4, 2.6, 1); ctx.fill(); ink(0.35);
-  }
-  // çanta (B): sırtta
-  if (!A) { ctx.fillStyle = '#29292c'; rr(2.2, 1.6, 2.9, 2.5, 0.7); ctx.fill(); ink(0.35); }
-  // gövde: siyah tişört
-  ctx.fillStyle = '#1f1f22'; ctx.beginPath(); ctx.ellipse(0, 0, bw + bob, bh, 0, 0, TAU); ctx.fill(); ink();
-  if (!A) { // çapraz askı + güneş logosu
-    ctx.strokeStyle = '#45454b'; ctx.lineWidth = 0.85; ctx.beginPath(); ctx.moveTo(-3.9, -1.7); ctx.lineTo(3.6, 2.1); ctx.stroke();
-    ctx.fillStyle = '#e8672a'; ctx.beginPath(); ctx.arc(-2.6, -2.2, 0.55, 0, TAU); ctx.fill();
-  }
-  // eller
-  const th = c.throwT > 0 ? Math.sin((1 - c.throwT / 0.3) * Math.PI) : 0;
-  const lh = scrubbing ? [-1.4, -2.9] : [-bw - 0.2, -1.2 - sw * 1.4];
-  const rh = scrubbing ? [1.4, -2.9] : [bw + 0.2 - th * 2, -1.2 + sw * 1.4 - th * 5.5];
-  if (!A && !scrubbing) { ctx.fillStyle = '#111'; rr(lh[0] - 0.9, lh[1] + 0.8, 1.8, 0.9, 0.3); ctx.fill(); }
-  for (const h of [lh, rh]) { ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(h[0], h[1], 1.3, 0, TAU); ctx.fill(); ink(0.35); }
-  if (holding && !scrubbing && c.throwT <= 0) {
-    ctx.fillStyle = ITEMS[holding].col; ctx.beginPath(); ctx.arc(rh[0] + 0.3, rh[1] - 1.3, 1.5, 0, TAU); ctx.fill(); ink(0.3);
-  }
-  // kafa
-  const hy = -0.4;
-  if (A) { ctx.fillStyle = '#222226'; ctx.beginPath(); ctx.ellipse(0, hy + 3.5, 2.5, 1.7, 0, 0, TAU); ctx.fill(); ink(); } // ters şapkanın siperi
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(0, hy - 3.2, 0.75, 1.1, 0, 0, TAU); ctx.fill(); ink(0.35); // burun
-  ctx.beginPath(); ctx.arc(0, hy, 3, 0, TAU); ctx.fill(); ink();
-  if (A) { // sakal: yüzün ön kenarı
-    ctx.strokeStyle = '#6b4a2a'; ctx.lineWidth = 0.9;
-    ctx.beginPath(); ctx.arc(0, hy, 2.45, -Math.PI + 0.35, -0.35); ctx.stroke();
-  }
-  for (const sx of [-1.08, 1.08]) { // iri yuvarlak gözler
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(sx, hy - 1.75, 1.0, 0, TAU); ctx.fill(); ink(0.3);
-    ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(sx * 0.95, hy - 2.2, 0.26, 0, TAU); ctx.fill();
-  }
-  if (A) {
-    ctx.fillStyle = '#222226'; ctx.beginPath(); ctx.arc(0, hy, 3.05, -0.2, Math.PI + 0.2); ctx.closePath(); ctx.fill(); ink();
-    ctx.fillStyle = '#4a4a50'; rr(-1.5, hy - 0.65, 3, 0.7, 0.3); ctx.fill();
-    // şapkanın üstünde güneş gözlüğü
-    for (const gx of [-2.05, 0.25]) { ctx.fillStyle = '#0d0e14'; rr(gx, hy + 0.5, 1.8, 1.25, 0.4); ctx.fill(); ctx.strokeStyle = '#59607a'; ctx.lineWidth = 0.25; ctx.stroke(); }
-    ctx.strokeStyle = '#0d0e14'; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.moveTo(-0.3, hy + 1.0); ctx.lineTo(0.3, hy + 1.0); ctx.stroke();
-    ctx.fillStyle = 'rgba(150,170,220,.5)'; ctx.fillRect(-1.8, hy + 0.7, 0.6, 0.25); ctx.fillRect(0.5, hy + 0.7, 0.6, 0.25);
-  } else { // dağınık saç
-    ctx.fillStyle = '#2e1f17'; ctx.beginPath();
-    HAIR_PTS.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1] + hy) : ctx.moveTo(p[0], p[1] + hy)));
-    ctx.closePath(); ctx.fill(); ink();
-  }
+  ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.beginPath(); ctx.ellipse(-r * 0.3, -r * 0.34, r * 0.22, r * 0.11, -0.6, 0, TAU); ctx.fill();
   ctx.restore();
 }
 function drawShot(s) {
   const t = s.t, x = s.fx + (s.tx - s.fx) * t, y = s.fy + (s.ty - s.fy) * t, z = Math.sin(t * Math.PI) * 20, it = ITEMS[s.type];
-  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(x, y, 2.4, 1.6, 0, 0, TAU); ctx.fill();
-  const r = 2.3 * (1 + z / 40) * (s.type === 'p' ? 1.3 : s.type === 'm' ? 1.15 : 1);
-  ctx.save(); ctx.translate(x, y - z * 0.55); ctx.rotate(s.spin + t * 9);
-  ctx.fillStyle = it.dark; ctx.beginPath(); ctx.ellipse(0, 0, r * (s.type === 'e' ? 0.82 : 1), r, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = it.col; ctx.beginPath(); ctx.ellipse(-r * 0.1, -r * 0.1, r * (s.type === 'e' ? 0.68 : 0.84), r * 0.84, 0, 0, TAU); ctx.fill();
-  if (s.type === 't') { ctx.fillStyle = '#3f8f2f'; ctx.beginPath(); ctx.arc(0, -r * 0.75, r * 0.32, 0, TAU); ctx.fill(); }
-  ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.arc(-r * 0.35, -r * 0.35, r * 0.2, 0, TAU); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(x, y + 9 * (1 - t), 2.4, 1.2, 0, 0, TAU); ctx.fill();
+  const r = 2.2 * (1 + z / 40) * (s.type === 'p' ? 1.3 : s.type === 'm' ? 1.15 : 1);
+  ctx.save(); ctx.translate(x, y - z * 0.6); ctx.rotate(s.spin + t * 9);
+  ctx.beginPath(); ctx.ellipse(0, 0, r * (s.type === 'e' ? 0.8 : 1), r, 0, 0, TAU); ctx.fillStyle = it.col; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 0.4; ctx.stroke();
+  if (s.type === 't') { ctx.fillStyle = '#3f8f2f'; ctx.beginPath(); ctx.arc(0, -r * 0.8, r * 0.35, 0, TAU); ctx.fill(); }
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.arc(-r * 0.35, -r * 0.35, r * 0.2, 0, TAU); ctx.fill();
   ctx.restore();
 }
 function draw() {
-  drawField();
-  drawBase(other(view)); drawBase(view);
-  for (const s of G.splats.values()) drawSplat(s);
-  drawChar(chars.enemy, other(view), null);
-  const dirty = dirtyCount(me) > 0;
-  drawChar(chars.me, view, canPlay && !dirty && G.players[me] && G.players[me].ammo[sel] > 0 ? sel : null);
-  // nişan
-  if (ptr.down && ptr.aiming) {
+  drawGround();
+  const es = other(view), geo = { [view]: houseGeo(view), [es]: houseGeo(es) }, onHouse = { A: [], B: [] };
+  for (const s of G.splats.values()) {
+    const sgeo = geo[s.side];
+    if (Math.abs(s.x - 50) < 16 * sgeo.s + 1 && Math.abs(s.y - 66) < 8 * sgeo.s + 1) onHouse[s.side].push(s); else drawSplat(s);
+  }
+  const dirty = dirtyCount(me) > 0, p = G.players[me];
+  const ents = [
+    { y: geo[es].cy + geo[es].hh, f: () => { drawHouse(es); onHouse[es].forEach(drawSplat); } },
+    { y: geo[view].cy + geo[view].hh, f: () => { drawHouse(view); onHouse[view].forEach(drawSplat); } },
+    { y: HALF, f: drawFence },
+    { y: chars.enemy.y, f: () => drawChar(chars.enemy, es, null) },
+    { y: chars.me.y, f: () => drawChar(chars.me, view, canPlay && !dirty && p && p.ammo[sel] > 0 ? sel : null) },
+  ];
+  for (const [x, y] of [[-9, 30], [-8, 110], [109, 62], [108, 140], [-10, 160], [110, 12]]) ents.push({ y, f: () => drawTree(x, y) });
+  ents.sort((a, b) => a.y - b.y).forEach(e => e.f());
+
+  if (ptr.down && ptr.aiming) { // nişan
     const tx = clamp(ptr.x, 5, W - 5), ty = clamp(ptr.y, 5, HALF - 5), c = chars.me;
-    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 0.7; ctx.setLineDash([2, 2]); ctx.lineDashOffset = -time * 12;
-    ctx.beginPath(); ctx.moveTo(c.x, c.y);
-    ctx.quadraticCurveTo((c.x + tx) / 2, (c.y + ty) / 2 - 14, tx, ty); ctx.stroke(); ctx.setLineDash([]);
-    const rr2 = ITEMS[sel].r * (1 + 0.07 * (lv(G.players[me]).L - 1)) * (0.92 + Math.sin(time * 8) * 0.06);
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(tx, ty, rr2, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 0.7; ctx.setLineDash([2, 2]); ctx.lineDashOffset = -time * 12;
+    ctx.beginPath(); ctx.moveTo(c.x, c.y - 9); ctx.quadraticCurveTo((c.x + tx) / 2, (c.y - 9 + ty) / 2 - 16, tx, ty); ctx.stroke(); ctx.setLineDash([]);
+    const L = lv(p).L, n = blobCount(L, sel), r2 = ITEMS[sel].r * (1 + 0.06 * (L - 1)) * (n > 1 ? 1.9 : 1) * (0.95 + Math.sin(time * 8) * 0.05);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.ellipse(tx, ty, r2, r2 * 0.8, 0, 0, TAU); ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fill();
-    ctx.beginPath(); ctx.moveTo(tx - 2, ty); ctx.lineTo(tx + 2, ty); ctx.moveTo(tx, ty - 2); ctx.lineTo(tx, ty + 2); ctx.stroke();
   }
   for (const s of shots) drawShot(s);
-  for (const p of parts) {
-    ctx.globalAlpha = Math.min(1, p.life / p.max * 1.6);
-    if (p.ring) { ctx.strokeStyle = p.col; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.stroke(); }
-    else { ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill(); }
+  for (const q of parts) {
+    ctx.globalAlpha = Math.min(1, q.life / q.max * 1.6);
+    if (q.ring) { ctx.strokeStyle = q.col; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, TAU); ctx.stroke(); }
+    else { ctx.fillStyle = q.col; ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, TAU); ctx.fill(); }
   }
   ctx.globalAlpha = 1;
 }
@@ -781,84 +958,113 @@ function toast(big, small) {
 }
 function nudgeBanner() { bannerEl.classList.remove('shake'); void bannerEl.offsetWidth; bannerEl.classList.add('shake'); }
 function hud() {
-  const p = G.players[me], ep = G.players[other(me)], li = lv(p), L = li.L;
+  const p = G.players[me], en = other(me), ep = G.players[en], li = lv(p), L = li.L;
   regen(p);
-  $('lvLabel').textContent = 'Seviye ' + L;
+  $('lvLabel').textContent = nameOf(me) + ' · Sv ' + L;
   $('xpBar').firstElementChild.style.width = (li.into / li.need * 100).toFixed(1) + '%';
   $('xpText').textContent = li.into + ' / ' + li.need;
   for (const k of ORDER) {
     const b = $('item-' + k), locked = L < ITEMS[k].unlock, n = p ? p.ammo[k] : 0;
     b.classList.toggle('locked', locked); b.classList.toggle('sel', k === sel && !locked); b.classList.toggle('empty', !locked && n === 0);
-    b.children[1].textContent = ITEMS[k].name;
+    b.children[1].textContent = ITEMS[k].short || ITEMS[k].name;
     b.children[2].textContent = locked ? 'Sv ' + ITEMS[k].unlock : n + '/' + cap(k, L);
   }
-  const et = TEAM[other(me)];
-  $('enemyChip').innerHTML = '<span class="swatch" style="background:' + et.main + '"></span>' +
-    (ep ? '<b>Rakip</b> Sv ' + lv(ep).L + ' · leke ' + dirtyCount(other(me)) : '<b>Rakip</b> bekleniyor');
+  const chip = $('enemyChip'); chip.textContent = '';
+  const sw = document.createElement('span'); sw.className = 'swatch'; sw.style.background = TEAM[en].main;
+  const nb = document.createElement('b'); nb.textContent = ep ? nameOf(en) : 'Rakip';
+  const st = document.createElement('span'); st.textContent = ep ? 'Sv ' + lv(ep).L + ' · leke ' + dirtyCount(en) : 'bekleniyor';
+  chip.append(sw, nb, st);
   const dirty = dirtyCount(me);
   let txt, warn = false;
   if (!ready) txt = 'Yükleniyor…';
   else if (!canPlay) txt = 'İzleyicisin';
   else if (dirty > 0) { txt = 'Önce temizle! Leke: ' + dirty; warn = true; }
-  else txt = 'Karşı sahaya dokun, nişanla, bırak';
+  else txt = 'Karşı tarafa dokun, nişanla, bırak';
   bannerEl.textContent = txt; bannerEl.classList.toggle('warn', warn);
   $('passBtn').hidden = online || !started;
 }
 
-function showModal(html) { modalEl.innerHTML = '<div class="card">' + html + '</div>'; modalEl.hidden = false; }
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function showModal(html) {
+  modalEl.innerHTML = '<div class="card">' + html + '</div>'; modalEl.hidden = false;
+  for (const c of modalEl.querySelectorAll('canvas[data-fig]')) {
+    const g = c.getContext('2d'), k = 2;
+    c.width = 84 * k; c.height = 104 * k;
+    g.setTransform(k * 4.6, 0, 0, k * 4.6, k * 42, k * 97);
+    g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.ellipse(0, 0, 5, 1.6, 0, 0, TAU); g.fill();
+    fig(g, c.dataset.fig, 'down', { walk: 0, moving: false, throwT: 0, scrub: 0, t: 0 });
+  }
+}
+function formHtml(side) {
+  const p = G.players[side], cur = p && CH[p.ch] ? p.ch : (CH[(G.players[other(side)] || {}).ch] ? (G.players[other(side)].ch === 'cap' ? 'hair' : 'cap') : chOf(side));
+  return '<label class="field" for="nameIn">Adın<input id="nameIn" type="text" maxlength="12" autocomplete="off" placeholder="' + TEAM[side].name + ' oyuncu" value="' + esc((p && p.name) || '') + '"></label>' +
+    '<div class="field">Karakterini seç</div><div class="pick">' +
+    Object.keys(CH).map(k => '<button type="button" class="pc' + (k === cur ? ' sel' : '') + '" data-ch="' + k + '"><canvas data-fig="' + k + '"></canvas>' + CH[k].label + '</button>').join('') + '</div>';
+}
+function readForm(side) {
+  const p = G.players[side], inp = $('nameIn'), pick = modalEl.querySelector('.pc.sel');
+  if (!p || !inp) return;
+  p.name = inp.value.trim().slice(0, 12); if (pick) p.ch = pick.dataset.ch;
+  be.savePlayer(side);
+}
 function startCard() {
-  const modeLine = !ready ? 'Bağlanıyor…'
-    : online ? (canPlay ? 'Çevrimiçi oyun. Sen <b>' + TEAM[me].name + '</b> takımsın. Arkadaşın kendi telefonundan girdiğinde attıkların onu bekliyor olacak.' : note)
-    : 'Tek telefon modu: sırayla oynayın, "Telefonu ver" ile oyuncu değişir.' + (note ? ' ' + note : '');
+  let modeLine, bad = noteBad;
+  if (!ready) modeLine = 'Bağlanıyor…';
+  else if (online) modeLine = canPlay ? 'Çevrimiçi oyun: <b>' + TEAM[me].name + '</b> takımdasın. ' + (G.players[other(me)] ? 'Rakibin: <b>' + esc(nameOf(other(me))) + '</b>.' : 'Rakibin henüz girmedi; attıkların onu bekleyecek.') : esc(note);
+  else modeLine = (note ? esc(note) + ' ' : '') + 'Tek telefon modu: sırayla oynayın, "Telefonu ver" ile oyuncu değişir.';
   showModal(
     '<h1>Domates Savaşı</h1>' +
-    '<p>Karşı üssü pisliğe boğ, kendi sahanı temiz tut.</p>' +
-    '<ul><li>Karşı sahaya dokun, sürükleyerek nişan al, bırakınca fırlat.</li>' +
-    '<li>Sahan kirliyse önce temizle: lekeye dokunup basılı tut, karakterin paspaslar.</li>' +
-    '<li>Pislettikçe seviye atlarsın: mermiler güçlenir, envanter ve üs büyür.</li></ul>' +
-    '<p class="note">' + modeLine + '</p>' +
+    (ready && canPlay ? formHtml(me) : '') +
+    '<ul><li>Karşı tarafa dokun, nişan al, bırakınca fırlat.</li>' +
+    '<li>Avlun kirliyse önce temizle: lekeye basılı tut.</li>' +
+    '<li>Pislettikçe seviye atlar, daha çok pislik saçarsın.</li></ul>' +
+    '<p class="note' + (bad ? ' bad' : '') + '">' + modeLine + '</p>' +
     '<div class="row"><button class="btn primary" type="button" data-act="start"' + (ready ? '' : ' disabled') + '>' + (ready ? (started ? 'Devam et' : 'Başla') : 'Bağlanıyor…') + '</button></div>');
 }
 function menuCard(confirmReset) {
   showModal(
     '<h2>Menü</h2>' +
-    '<p>' + (online ? 'Çevrimiçi oyun · ' + (canPlay ? TEAM[me].name + ' takım' : 'izleyici') : 'Tek telefon modu · sıra ' + TEAM[me].name + ' takımda') + '</p>' +
-    '<div class="row"><button class="btn ghost" type="button" data-act="help">Nasıl oynanır</button>' +
-    '<button class="btn ghost" type="button" data-act="mute">Ses: ' + (muted ? 'kapalı' : 'açık') + '</button></div>' +
+    '<p>' + (online ? 'Çevrimiçi oyun · ' + (canPlay ? TEAM[me].name + ' takım' : 'izleyici') : 'Tek telefon modu · sıra ' + esc(nameOf(me)) + ' oyuncuda') + '</p>' +
+    '<div class="row"><button class="btn" type="button" data-act="help">İsim ve karakter</button>' +
+    '<button class="btn" type="button" data-act="mute">Ses: ' + (muted ? 'kapalı' : 'açık') + '</button></div>' +
     (canPlay ? (confirmReset
-      ? '<p class="note">İki oyuncunun da seviyesi, envanteri ve tüm lekeler silinecek.</p><div class="row"><button class="btn danger" type="button" data-act="reset-yes">Evet, sıfırla</button><button class="btn ghost" type="button" data-act="menu">Vazgeç</button></div>'
-      : '<div class="row"><button class="btn ghost" type="button" data-act="reset">Oyunu sıfırla</button></div>') : '') +
+      ? '<p class="note">İki oyuncunun da seviyesi, envanteri ve tüm lekeler silinecek.</p><div class="row"><button class="btn danger" type="button" data-act="reset-yes">Evet, sıfırla</button><button class="btn" type="button" data-act="menu">Vazgeç</button></div>'
+      : '<div class="row"><button class="btn" type="button" data-act="reset">Oyunu sıfırla</button></div>') : '') +
     '<div class="row"><button class="btn primary" type="button" data-act="close">Oyuna dön</button></div>');
 }
 function passCard() {
   const next = other(me);
-  showModal('<h2>Telefonu ' + TEAM[next].name + ' oyuncuya ver</h2><p>Sıra ' + TEAM[next].name + ' takımda. Sahanda leke varsa önce onları temizlemen gerekecek.</p>' +
+  showModal('<h2>Telefonu ' + esc(nameOf(next)) + ' oyuncuya ver</h2>' + formHtml(next) +
+    '<p class="note">Avlunda leke varsa önce onları temizlemen gerekecek.</p>' +
     '<div class="row"><button class="btn primary" type="button" data-act="pass-go">Hazırım</button></div>');
 }
 modalEl.addEventListener('click', e => {
+  const pc = e.target.closest('.pc');
+  if (pc) { for (const o of modalEl.querySelectorAll('.pc')) o.classList.toggle('sel', o === pc); return; }
   const b = e.target.closest('[data-act]'); if (!b) return;
   audioInit();
   const a = b.dataset.act;
-  if (a === 'start' || a === 'close') { started = true; modalEl.hidden = true; hud(); }
+  if (a === 'start') { if (canPlay) readForm(me); started = true; modalEl.hidden = true; hud(); }
+  else if (a === 'close') { modalEl.hidden = true; hud(); }
   else if (a === 'help') startCard();
   else if (a === 'menu') menuCard(false);
   else if (a === 'mute') { muted = !muted; try { localStorage.setItem(LS + '-mute', muted ? '1' : '0'); } catch (err) {} menuCard(false); }
   else if (a === 'reset') menuCard(true);
   else if (a === 'reset-yes') { be.reset(); sel = 't'; shots.length = 0; modalEl.hidden = true; toast('Oyun sıfırlandı'); hud(); }
-  else if (a === 'pass-go') { me = other(me); view = me; sel = 't'; resetChars(); shots.length = 0; parts.length = 0; modalEl.hidden = true; hud(); }
+  else if (a === 'pass-go') { const next = other(me); readForm(next); me = next; view = me; sel = 't'; resetChars(); shots.length = 0; parts.length = 0; modalEl.hidden = true; hud(); }
 });
 $('menuBtn').addEventListener('click', () => menuCard(false));
 $('passBtn').addEventListener('click', () => { if (!shots.length) passCard(); });
 
 /* ---------- Açılış ---------- */
-function useLocal(msg) {
-  online = false; note = msg || ''; G.splats.clear(); G.players = { A: null, B: null };
+function useLocal(msg, bad) {
+  online = false; note = msg || ''; noteBad = !!bad; G.splats.clear(); G.players = { A: null, B: null };
   be = localBE; be.init(); ready = true;
 }
 async function boot() {
   const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   let db = null, user = null;
-  if (window.claude && window.claude.use) {
+  if (inClaude) {
     try { [db, user] = await withTimeout(Promise.all([window.claude.use('db'), window.claude.use('user')]), 11000); } catch (e) {}
   }
   if (db) {
@@ -867,10 +1073,10 @@ async function boot() {
       await withTimeout(obe.init(user), 10000);
       be = obe; online = true; ready = true;
       document.addEventListener('visibilitychange', () => { if (document.hidden) obe.flush(); });
-    } catch (e) { useLocal('Çevrimiçi bağlantı kurulamadı.'); }
-  } else useLocal('');
-  const p = G.players[me];
-  if (p) { regen(p); for (const k of ORDER) if (lv(p).L < ITEMS[k].unlock && sel === k) sel = 't'; }
+    } catch (e) { useLocal('Çevrimiçi oyuna bağlanılamadı; sayfayı yenileyip tekrar dene.', true); }
+  } else if (inClaude) useLocal('Çevrimiçi oyuna bağlanamadın. Claude hesabınla giriş yapman ve oyunun sahibinin seni Paylaş menüsünden e-postayla Editör olarak davet etmesi gerekiyor.', true);
+  else useLocal('');
+  regen(G.players[me]);
   resetChars();
   if (!started) startCard();
   hud();

@@ -4,10 +4,10 @@ Telefondan oynanan, tepeden bakışlı, vektörel iki kişilik pislik savaşı.
 
 ## Kurallar
 
-- İki üs karşılıklı durur. Her oyuncu 50 domatesle başlar.
+- İki çiftlik evi karşılıklı durur (eğik üstten bakış). Her oyuncu adını ve karakterini seçer, 50 domatesle başlar.
 - Karşı sahaya dokun, nişan al, bırak: mermi patlar ve leke bırakır.
 - Sahanda leke varsa önce temizlemen gerekir (lekeye basılı tut, karakter paspaslar). Temizlemeden saldıramazsın.
-- Pislettikçe puan kazanıp seviye atlarsın: mermiler güçlenir, yeni mermiler açılır
+- Pislettikçe seviye atlarsın: her atış daha çok leke saçar, yeni mermiler açılır
   (çürük yumurta Sv 2, çamur topu Sv 4, boya balonu Sv 6), envanter kapasitesi ve üs büyür.
 - Mermiler zamanla yavaşça yenilenir.
 
