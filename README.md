@@ -1,30 +1,22 @@
-# PROJE-
+# Domates Savaşı
 
-Basit, bağımlılık gerektirmeyen bir **görev takip** web uygulaması.
+Telefondan oynanan, tepeden bakışlı, vektörel iki kişilik pislik savaşı.
 
-## Özellikler
+## Kurallar
 
-- Görev ekleme, tamamlandı olarak işaretleme ve silme
-- Tümü / Aktif / Tamamlanan filtreleri
-- Tamamlanan görevleri tek tıkla temizleme
-- Görevler tarayıcıda (`localStorage`) saklanır
-- Açık ve koyu tema desteği
+- İki üs karşılıklı durur. Her oyuncu 50 domatesle başlar.
+- Karşı sahaya dokun, nişan al, bırak: mermi patlar ve leke bırakır.
+- Sahanda leke varsa önce temizlemen gerekir (lekeye basılı tut, karakter paspaslar). Temizlemeden saldıramazsın.
+- Pislettikçe puan kazanıp seviye atlarsın: mermiler güçlenir, yeni mermiler açılır
+  (çürük yumurta Sv 2, çamur topu Sv 4, boya balonu Sv 6), envanter kapasitesi ve üs büyür.
+- Mermiler zamanla yavaşça yenilenir.
 
-## Çalıştırma
+## Modlar
 
-`src/index.html` dosyasını tarayıcıda açmanız yeterli. Ya da yerel bir sunucuyla:
+- **Çevrimiçi (iki telefon):** oyun Claude artifact'i olarak yayınlandığında ortak veritabanını kullanır;
+  attığın lekeler arkadaşın oyuna girdiğinde onu bekler.
+- **Tek telefon:** `oyun.html` doğrudan tarayıcıda açılırsa sırayla oynanır ("Telefonu ver").
 
-```bash
-python3 -m http.server 8000 --directory src
-```
+## Dosyalar
 
-Ardından <http://localhost:8000> adresine gidin.
-
-## Dosya yapısı
-
-```
-src/
-  index.html   # sayfa yapısı
-  style.css    # stiller
-  app.js       # uygulama mantığı
-```
+- `oyun.html`: oyunun tamamı (HTML + CSS + JS, bağımlılık yok)
