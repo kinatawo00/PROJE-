@@ -1,6 +1,10 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
 <title>Domates Savaşı</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#7dbb4b">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap">
 <style>
 /* Yerleşim: tam ekran çiftlik avlusu (eğik üstten bakış); üstte rakip şeridi, altta ahşap envanter paneli. Tek tema (oyun dünyası). */
@@ -24,7 +28,7 @@ body {
   overflow: hidden; overscroll-behavior: none;
   -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
 }
-#app { position: relative; height: 100%; overflow: hidden; }
+#app { position: relative; height: 100%; overflow: hidden; box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
 
 .bar {
@@ -34,8 +38,8 @@ body {
   pointer-events: none;
 }
 .bar > * { pointer-events: auto; }
-#top { top: 0; padding-block: 8px; display: flex; gap: 8px; align-items: center; }
-#bottom { bottom: 0; padding-block: 8px; display: flex; flex-direction: column; gap: 6px; }
+#top { top: env(safe-area-inset-top, 0px); padding-block: 8px; display: flex; gap: 8px; align-items: center; }
+#bottom { bottom: env(safe-area-inset-bottom, 0px); padding-block: 8px; display: flex; flex-direction: column; gap: 6px; }
 .grow { flex: 1; min-width: 0; }
 
 .chip {
@@ -57,7 +61,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .btn.primary:disabled { opacity: .6; }
 
 #banner {
-  position: absolute; top: 54px; left: 50%; transform: translateX(-50%); z-index: 2;
+  position: absolute; top: calc(54px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); z-index: 2;
   background: var(--wood); border-radius: 10px; padding: 4px 12px;
   font-family: var(--display); font-weight: 800; font-size: 13px; line-height: 1.3; text-align: center; white-space: nowrap;
   max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; pointer-events: none;
@@ -128,11 +132,16 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
   font: inherit; font-size: 16px; font-weight: 800; color: var(--ink); background: #fff; border: 2px solid #c9ae6e; border-radius: 10px;
   padding: 8px 10px; min-width: 0; -webkit-user-select: text; user-select: text;
 }
+.share { display: flex; gap: 6px; align-items: stretch; }
+.share input { flex: 1; min-width: 0; font: inherit; font-size: 13px; color: var(--ink); background: #fff; border: 2px solid #c9ae6e; border-radius: 10px; padding: 6px 8px; -webkit-user-select: text; user-select: text; }
+.live { width: 8px; height: 8px; border-radius: 50%; background: #5fe06a; flex: none; }
 .pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .pc { background: #f1e2b6; border: 3px solid #c9ae6e; border-radius: 14px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; color: var(--ink); font-family: var(--display); font-weight: 800; font-size: 14px; }
 .pc canvas { width: 84px; height: 104px; }
 .pc.sel { border-color: var(--tomato); background: #ffe9a8; }
 </style>
+</head>
+<body>
 
 <div id="app">
   <canvas id="cv"></canvas>
@@ -155,6 +164,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
   <div id="modal"></div>
 </div>
 
+<script src="mqtt.min.js"></script>
 <script>
 (() => {
 'use strict';
@@ -184,7 +194,8 @@ let me = 'A', view = 'A', canPlay = false, online = false, started = false, read
 let myUid = '', be = null, sel = 't', note = '', noteBad = false;
 const other = s => (s === 'A' ? 'B' : 'A');
 const rid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-const inClaude = !!(window.claude && window.claude.use);
+let room = '', netBE = null;
+const onl = {};
 
 function levelInfo(xp) {
   let L = 1, need = 60;
@@ -200,8 +211,8 @@ const nameOf = side => { const p = G.players[side]; return (p && p.name) || TEAM
 function newPlayer(uid, resetAt, keep) {
   return { uid, name: keep ? keep.name || '' : '', ch: keep ? keep.ch || '' : '', xp: 0, ammo: { t: 50, e: 0, m: 0, p: 0 }, regenAt: Date.now(), tick: 0, cleaned: 0, resetAt: resetAt || 0 };
 }
-const plain = p => ({ uid: p.uid, name: p.name || '', ch: p.ch || '', xp: p.xp, ammo: { ...p.ammo }, regenAt: p.regenAt, tick: p.tick, cleaned: p.cleaned || 0, resetAt: p.resetAt || 0 });
-const norm = d => (d ? { uid: d.uid || '', name: d.name || '', ch: d.ch || '', xp: +d.xp || 0, ammo: { t: 0, e: 0, m: 0, p: 0, ...(d.ammo || {}) }, regenAt: +d.regenAt || Date.now(), tick: +d.tick || 0, cleaned: +d.cleaned || 0, resetAt: +d.resetAt || 0 } : null);
+const plain = p => ({ uid: p.uid, name: p.name || '', ch: p.ch || '', xp: p.xp, ammo: { ...p.ammo }, regenAt: p.regenAt, tick: p.tick, cleaned: p.cleaned || 0, resetAt: p.resetAt || 0, v: p.v || 0 });
+const norm = d => (d ? { uid: String(d.uid || ''), name: String(d.name || '').slice(0, 12), ch: d.ch || '', xp: +d.xp || 0, ammo: { t: 0, e: 0, m: 0, p: 0, ...(d.ammo || {}) }, regenAt: +d.regenAt || Date.now(), tick: +d.tick || 0, cleaned: +d.cleaned || 0, resetAt: +d.resetAt || 0, v: +d.v || 0 } : null);
 const splatData = s => ({ side: s.side, x: s.x, y: s.y, r: s.r, type: s.type, seed: s.seed, by: s.by, at: s.at, g: s.g || '', lv: s.lv || 1 });
 
 function regen(p) {
@@ -244,95 +255,101 @@ const localBE = {
   reset() { G.splats.clear(); G.players.A = newPlayer('A', 0, G.players.A); G.players.B = newPlayer('B', 0, G.players.B); this.persist(); },
 };
 
-/* ---------- Depolama: çevrimiçi (iki telefon) ---------- */
-function makeOnlineBE(db) {
-  const localAdds = new Map(), localDels = new Map(), groups = new Map();
-  let saveT = null, chain = Promise.resolve(), warned = false;
-  const fail = () => { if (!warned) { warned = true; toast('Kaydedilemedi', 'Bağlantını kontrol et'); setTimeout(() => (warned = false), 8000); } };
+/* ---------- Depolama: çevrimiçi oda (iki telefon, açık mesaj sunucusu) ---------- */
+const BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+function makeNetBE(roomId, urls) {
+  const prefix = 'domsav1/' + roomId + '/', clients = [], groups = new Map(), RK = LS + '-oda-' + roomId;
+  let saved = null, tomb = new Map(), saveT = null, seated = false, decideT = null, resolveInit = null;
+  try { saved = JSON.parse(localStorage.getItem(RK) || 'null'); if (saved && saved.tomb) tomb = new Map(saved.tomb); } catch (e) {}
+  const persist = () => {
+    try { localStorage.setItem(RK, JSON.stringify({ seat: canPlay ? me : null, player: canPlay && G.players[me] ? plain(G.players[me]) : null, tomb: [...tomb].slice(-300) })); } catch (e) {}
+  };
+  const pub = (t, payload) => { for (const c of clients) { try { c.publish(prefix + t, payload, { retain: true, qos: 1 }); } catch (e) {} } };
   const flush = () => {
     clearTimeout(saveT); saveT = null;
     if (!canPlay || !G.players[me]) return;
-    const d = plain(G.players[me]), path = 'players/' + me;
-    chain = chain.then(() => db.doc(path).set(d)).catch(fail);
+    const p = G.players[me]; p.v = Date.now();
+    pub('p/' + me, JSON.stringify(plain(p))); persist();
   };
+  function decide() {
+    if (seated) return; seated = true;
+    const sv = saved && saved.player && saved.player.uid === myUid ? norm(saved.player) : null;
+    const order = saved && saved.seat === 'B' ? ['B', 'A'] : ['A', 'B'];
+    const mine = order.find(s => G.players[s] && G.players[s].uid === myUid), free = order.find(s => !G.players[s]);
+    if (mine) {
+      me = mine; canPlay = true;
+      const cur = G.players[mine];
+      if (sv && (sv.resetAt || 0) >= (cur.resetAt || 0) && (sv.v || 0) > (cur.v || 0)) { G.players[mine] = sv; flush(); }
+    } else if (free) {
+      const o = G.players[other(free)], oAt = (o && o.resetAt) || 0;
+      G.players[free] = sv && (sv.resetAt || 0) >= oAt ? sv : newPlayer(myUid, oAt, sv);
+      me = free; canPlay = true; flush();
+    } else { me = 'A'; canPlay = false; note = 'Bu odada iki oyuncu da dolu. Şimdilik izleyicisin.'; }
+    view = me; persist(); resolveInit();
+  }
+  function onPlayer(side, d) {
+    const cur = G.players[side];
+    if (seated && canPlay && side === me) {
+      if (d.uid === myUid) { if ((d.resetAt || 0) > (cur.resetAt || 0)) { G.players[me] = d; persist(); toast('Oyun sıfırlandı'); } return; }
+      if (myUid < d.uid) { flush(); return; } // aynı yere iki kişi oturduysa küçük kimlik kalır
+      const o = other(side);
+      G.players[side] = d;
+      if (!G.players[o] || G.players[o].uid === myUid) { G.players[o] = cur; me = o; view = o; flush(); toast('Takımın değişti', TEAM[o].name + ' takımdasın'); }
+      else { canPlay = false; toast('Oda dolu', 'İzleyicisin'); }
+      resetChars(); persist(); return;
+    }
+    if (!cur || cur.uid !== d.uid || (d.v || 0) >= (cur.v || 0)) G.players[side] = d;
+  }
+  function onSplat(id, txt) {
+    if (!txt) {
+      const s = G.splats.get(id);
+      if (s) { G.splats.delete(id); if (started && s.side !== me) enemyCleaned(s); }
+      return;
+    }
+    if (tomb.has(id)) { pub('s/' + id, ''); return; }
+    if (G.splats.has(id) || incoming.has(id)) return;
+    const d = JSON.parse(txt);
+    if (!d || (d.side !== 'A' && d.side !== 'B') || !ITEMS[d.type]) return;
+    const s = { side: d.side, x: clamp(+d.x || 0, 0, 100), y: clamp(+d.y || 0, 0, 85), r: clamp(+d.r || 5, 2, 26), type: d.type, seed: d.seed | 0, by: String(d.by || ''), at: +d.at || 0, g: String(d.g || ''), lv: +d.lv || 1, id };
+    if (started && canPlay && s.side === me && s.by !== myUid && Math.abs(Date.now() - s.at) < 12000) {
+      const gk = s.g || id; let grp = groups.get(gk);
+      if (!grp) { grp = { landed: false, list: [] }; groups.set(gk, grp); launchIncoming(s, grp); }
+      if (grp.landed) G.splats.set(id, s); else { grp.list.push(s); incoming.set(id, s); }
+    } else G.splats.set(id, s);
+  }
+  function onMessage(topic, payload) {
+    if (!topic.startsWith(prefix)) return;
+    const rest = topic.slice(prefix.length), txt = payload.toString();
+    if (rest === 'p/A' || rest === 'p/B') { if (txt) { const d = norm(JSON.parse(txt)); if (d && d.uid) onPlayer(rest[2], d); } }
+    else if (rest.startsWith('s/')) onSplat(rest.slice(2), txt);
+    else if (rest.startsWith('on/')) onl[rest.slice(3)] = !!txt;
+  }
   return {
-    async init(user) {
-      let uid = '';
-      st('Hesabın doğrulanıyor…');
-      try { uid = user ? await user.id() : ''; } catch (e) {}
-      st('Oyuncu kayıtları okunuyor… Ekranda izin penceresi çıkarsa onayla.');
-      if (!uid) {
-        try { uid = localStorage.getItem(LS + '-uid') || ''; if (!uid) { uid = 'g' + rid(); localStorage.setItem(LS + '-uid', uid); } } catch (e) { uid = 'g' + rid(); }
-      }
-      myUid = uid;
-      const [a, b] = await Promise.all([db.doc('players/A').get(), db.doc('players/B').get()]);
-      st('Kayıtlar okundu…');
-      const pa = a.exists ? norm(a.data()) : null, pb = b.exists ? norm(b.data()) : null;
-      G.players.A = pa; G.players.B = pb;
-      let claim = null;
-      if (pa && pa.uid === uid) me = 'A';
-      else if (pb && pb.uid === uid) me = 'B';
-      else if (!pa) claim = 'A';
-      else if (!pb) claim = 'B';
-      else { me = 'A'; canPlay = false; note = 'Bu oyunda iki oyuncu da dolu. Şimdilik izleyicisin.'; }
-      if (claim) {
-        try {
-          st('Oyundaki yerin ayırtılıyor…');
-          const p = newPlayer(uid, (pa || pb || {}).resetAt || 0);
-          await db.doc('players/' + claim).set(plain(p));
-          st('Yer ayırtıldı…');
-          G.players[claim] = p; me = claim;
-        } catch (e) {
-          if (e === CANCEL) throw e;
-          me = 'A'; canPlay = false; claim = null; noteBad = true;
-          note = 'Oyunu görebiliyorsun ama oynama iznin yok. Oyunun sahibi Paylaş menüsünden seni e-postayla Editör olarak davet etmeli (herkese açık link kapalı olmalı).';
-          view = me; this.subscribe(); return;
-        }
-      }
-      if (claim || (G.players[me] && G.players[me].uid === uid)) canPlay = true;
-      view = me;
-      this.subscribe();
+    init() {
+      return new Promise(res => {
+        resolveInit = res;
+        urls.forEach((url, i) => {
+          const topicOn = prefix + 'on/' + myUid;
+          const c = mqtt.connect(url, { clientId: 'ds_' + myUid + '_' + i + '_' + rid().slice(-4), clean: true, keepalive: 30, reconnectPeriod: 4000, connectTimeout: 9000, will: { topic: topicOn, payload: '', retain: true, qos: 0 } });
+          clients.push(c);
+          c.on('connect', () => {
+            c.subscribe(prefix + '#', { qos: 1 }, () => {
+              if (!seated && !decideT && !bootAbort) { st('Oda okunuyor…'); decideT = setTimeout(decide, 1800); }
+            });
+            c.publish(topicOn, '1', { retain: true, qos: 0 });
+            if (seated && canPlay) flush();
+          });
+          c.on('message', (topic, payload) => { try { onMessage(topic, payload); } catch (e) {} });
+          c.on('error', () => {});
+        });
+      });
     },
-    subscribe() {
-      for (const side of ['A', 'B']) {
-        db.doc('players/' + side).onSnapshot(snap => {
-          const d = snap.exists ? norm(snap.data()) : null;
-          if (side === me && canPlay) {
-            const mine = G.players[me];
-            if (d && mine && (d.resetAt || 0) > (mine.resetAt || 0)) { G.players[me] = d; toast('Oyun sıfırlandı'); }
-          } else G.players[side] = d;
-        }, () => {});
-      }
-      db.collection('splats').onSnapshot(snap => {
-        const now = Date.now(), seen = new Set();
-        for (const doc of snap.docs) {
-          const id = doc.id; seen.add(id);
-          if (G.splats.has(id) || incoming.has(id)) continue;
-          if (localDels.has(id) && now - localDels.get(id) < 15000) continue;
-          const s = { ...doc.data(), id };
-          if (started && s.side === me && s.by !== myUid && now - s.at < 12000) {
-            const gk = s.g || id; let grp = groups.get(gk);
-            if (!grp) { grp = { landed: false, list: [] }; groups.set(gk, grp); launchIncoming(s, grp); }
-            if (grp.landed) G.splats.set(id, s); else { grp.list.push(s); incoming.set(id, s); }
-          } else G.splats.set(id, s);
-        }
-        for (const [id, s] of G.splats) {
-          if (seen.has(id)) continue;
-          if (localAdds.has(id) && now - localAdds.get(id) < 15000) continue;
-          G.splats.delete(id);
-          if (started && s.side !== me) enemyCleaned(s);
-        }
-      }, () => {});
-    },
-    addSplat(s) {
-      s.id = rid(); G.splats.set(s.id, s); localAdds.set(s.id, Date.now());
-      db.doc('splats/' + s.id).set(splatData(s)).catch(fail);
-    },
-    delSplat(id) {
-      G.splats.delete(id); localDels.set(id, Date.now());
-      db.doc('splats/' + id).delete().catch(fail);
-    },
-    savePlayer() { if (!saveT) saveT = setTimeout(flush, 600); },
+    connected: () => clients.filter(c => c.connected).length,
+    total: () => clients.length,
+    close() { clearTimeout(decideT); for (const c of clients) { try { c.end(true); } catch (e) {} } },
+    addSplat(s) { s.id = rid(); G.splats.set(s.id, s); pub('s/' + s.id, JSON.stringify(splatData(s))); },
+    delSplat(id) { G.splats.delete(id); tomb.set(id, Date.now()); pub('s/' + id, ''); persist(); },
+    savePlayer() { if (!saveT) saveT = setTimeout(flush, 500); },
     flush,
     reset() {
       const at = Date.now();
@@ -340,10 +357,10 @@ function makeOnlineBE(db) {
       for (const side of ['A', 'B']) {
         const p = G.players[side];
         if (!p) continue;
-        G.players[side] = newPlayer(p.uid, at, p);
-        const d = plain(G.players[side]);
-        chain = chain.then(() => db.doc('players/' + side).set(d)).catch(fail);
+        const np = newPlayer(p.uid, at, p); np.v = at;
+        G.players[side] = np; pub('p/' + side, JSON.stringify(plain(np)));
       }
+      persist();
     },
   };
 }
@@ -979,8 +996,9 @@ function hud() {
   const chip = $('enemyChip'); chip.textContent = '';
   const sw = document.createElement('span'); sw.className = 'swatch'; sw.style.background = TEAM[en].main;
   const nb = document.createElement('b'); nb.textContent = ep ? nameOf(en) : 'Rakip';
-  const st = document.createElement('span'); st.textContent = ep ? 'Sv ' + lv(ep).L + ' · leke ' + dirtyCount(en) : 'bekleniyor';
-  chip.append(sw, nb, st);
+  const stx = document.createElement('span'); stx.textContent = ep ? 'Sv ' + lv(ep).L + ' · leke ' + dirtyCount(en) : 'bekleniyor';
+  chip.append(sw, nb, stx);
+  if (online && ep && onl[ep.uid]) { const lvn = document.createElement('span'); lvn.className = 'live'; lvn.title = 'çevrimiçi'; chip.append(lvn); }
   const dirty = dirtyCount(me);
   let txt, warn = false;
   if (!ready) txt = 'Yükleniyor…';
@@ -1014,10 +1032,14 @@ function readForm(side) {
   p.name = inp.value.trim().slice(0, 12); if (pick) p.ch = pick.dataset.ch;
   be.savePlayer(side);
 }
+function shareHtml() {
+  if (!online) return '';
+  return '<div class="share"><input id="roomLink" type="text" readonly aria-label="Oda linki" value="' + esc(location.href) + '"><button class="btn" type="button" data-act="copy">Linki kopyala</button></div>';
+}
 function startCard() {
   let modeLine, bad = noteBad;
   if (!ready) modeLine = '<span id="bootNote">' + esc(bootStage) + '</span>';
-  else if (online) modeLine = canPlay ? 'Çevrimiçi oyun: <b>' + TEAM[me].name + '</b> takımdasın. ' + (G.players[other(me)] ? 'Rakibin: <b>' + esc(nameOf(other(me))) + '</b>.' : 'Rakibin henüz girmedi; attıkların onu bekleyecek.') : esc(note);
+  else if (online) modeLine = canPlay ? 'Çevrimiçi oda: <b>' + TEAM[me].name + '</b> takımdasın. ' + (G.players[other(me)] ? 'Rakibin: <b>' + esc(nameOf(other(me))) + '</b>' + (onl[G.players[other(me)].uid] ? ' (şu an çevrimiçi).' : '.') : 'Rakibin henüz girmedi. Aşağıdaki linki ona gönder.') : esc(note);
   else modeLine = (note ? esc(note) + ' ' : '') + 'Tek telefon modu: sırayla oynayın, "Telefonu ver" ile oyuncu değişir.';
   showModal(
     '<h1>Domates Savaşı</h1>' +
@@ -1025,7 +1047,7 @@ function startCard() {
     '<ul><li>Karşı tarafa dokun, nişan al, bırakınca fırlat.</li>' +
     '<li>Avlun kirliyse önce temizle: lekeye basılı tut.</li>' +
     '<li>Pislettikçe seviye atlar, daha çok pislik saçarsın.</li></ul>' +
-    '<p class="note' + (bad ? ' bad' : '') + '">' + modeLine + '</p>' +
+    '<p class="note' + (bad ? ' bad' : '') + '">' + modeLine + '</p>' + shareHtml() +
     '<p id="errLine" class="note bad"' + (lastErr ? '' : ' hidden') + '>' + (lastErr ? 'Hata: ' + esc(lastErr) : '') + '</p>' +
     '<div class="row"><button class="btn primary" type="button" data-act="start"' + (ready ? '' : ' disabled') + '>' + (ready ? (started ? 'Devam et' : 'Başla') : 'Bağlanıyor…') + '</button>' +
     (ready ? '' : '<button class="btn" type="button" data-act="solo">Beklemeden tek telefonda dene</button>') + '</div>');
@@ -1033,7 +1055,7 @@ function startCard() {
 function menuCard(confirmReset) {
   showModal(
     '<h2>Menü</h2>' +
-    '<p>' + (online ? 'Çevrimiçi oyun · ' + (canPlay ? TEAM[me].name + ' takım' : 'izleyici') : 'Tek telefon modu · sıra ' + esc(nameOf(me)) + ' oyuncuda') + '</p>' +
+    '<p>' + (online ? 'Çevrimiçi oda ' + esc(room) + ' · ' + (canPlay ? TEAM[me].name + ' takım' : 'izleyici') + ' · sunucu ' + netBE.connected() + '/' + netBE.total() : 'Tek telefon modu · sıra ' + esc(nameOf(me)) + ' oyuncuda') + '</p>' + shareHtml() +
     '<div class="row"><button class="btn" type="button" data-act="help">İsim ve karakter</button>' +
     '<button class="btn" type="button" data-act="mute">Ses: ' + (muted ? 'kapalı' : 'açık') + '</button></div>' +
     (canPlay ? (confirmReset
@@ -1054,7 +1076,12 @@ modalEl.addEventListener('click', e => {
   audioInit();
   const a = b.dataset.act;
   if (a === 'start') { if (canPlay) readForm(me); started = true; modalEl.hidden = true; hud(); }
-  else if (a === 'solo') { if (!ready) { bootAbort = true; useLocal('Tek telefonda deneme modundasın. Çevrimiçi oyun için sayfayı yenile.'); finishBoot(); } }
+  else if (a === 'copy') {
+    const inp = $('roomLink'), done = () => { b.textContent = 'Kopyalandı'; };
+    const fallback = () => { try { inp.focus(); inp.select(); inp.setSelectionRange(0, 9999); if (document.execCommand('copy')) done(); } catch (err) {} };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(inp.value).then(done, fallback); else fallback();
+  }
+  else if (a === 'solo') { if (!ready) { bootAbort = true; if (netBE) netBE.close(); useLocal('Tek telefonda deneme modundasın. Çevrimiçi oyun için sayfayı yenile.'); finishBoot(); } }
   else if (a === 'close') { modalEl.hidden = true; hud(); }
   else if (a === 'help') startCard();
   else if (a === 'menu') menuCard(false);
@@ -1092,27 +1119,30 @@ function finishBoot() {
 }
 async function boot() {
   try {
-    let db = null, user = null;
-    if (inClaude) {
+    if (window.mqtt) {
+      const m = /^#([a-z0-9]{4,16})$/.exec(location.hash);
+      room = m ? m[1] : '';
+      if (!room) {
+        room = Math.random().toString(36).slice(2, 8).padEnd(6, 'x');
+        try { history.replaceState(null, '', '#' + room); } catch (e) { location.hash = room; }
+      }
+      try { myUid = localStorage.getItem(LS + '-uid') || ''; if (!myUid) { myUid = 'u' + rid(); localStorage.setItem(LS + '-uid', myUid); } } catch (e) { myUid = 'u' + rid(); }
+      let urls = BROKERS;
+      if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { const b = new URLSearchParams(location.search).get('b'); if (b) urls = [b]; }
       st('Oyun sunucusuna bağlanılıyor…');
-      db = await window.claude.use('db');
-      st('Hesabın okunuyor…');
-      user = await window.claude.use('user');
-    }
-    if (db) {
-      const obe = makeOnlineBE(db);
-      await obe.init(user);
-      st('Bağlandı');
-      be = obe; online = true; ready = true;
-      document.addEventListener('visibilitychange', () => { if (document.hidden) obe.flush(); });
-    } else if (inClaude) useLocal('Çevrimiçi oyuna bağlanamadın. Claude hesabınla giriş yapman ve oyunun sahibinin seni Paylaş menüsünden e-postayla Editör olarak davet etmesi gerekiyor.', true);
-    else useLocal('');
+      netBE = makeNetBE(room, urls);
+      await netBE.init();
+      if (bootAbort) return;
+      be = netBE; online = true; ready = true;
+      document.addEventListener('visibilitychange', () => { if (document.hidden) netBE.flush(); });
+    } else useLocal('Çevrimiçi bağlantı kitaplığı yüklenemedi.', true);
   } catch (e) {
     if (e === CANCEL || bootAbort) return;
     useLocal('Çevrimiçi oyuna bağlanılamadı (' + ((e && (e.code || e.message)) || 'bilinmeyen hata') + '). Sayfayı yenileyip tekrar dene.', true);
   }
   finishBoot();
 }
+window.addEventListener('hashchange', () => location.reload());
 
 let last = performance.now();
 function frame(now) {
@@ -1128,3 +1158,5 @@ requestAnimationFrame(frame);
 boot();
 })();
 </script>
+</body>
+</html>
