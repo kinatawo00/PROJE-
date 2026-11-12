@@ -257,12 +257,15 @@ function makeOnlineBE(db) {
   return {
     async init(user) {
       let uid = '';
+      st('Hesabın doğrulanıyor…');
       try { uid = user ? await user.id() : ''; } catch (e) {}
+      st('Oyuncu kayıtları okunuyor… Ekranda izin penceresi çıkarsa onayla.');
       if (!uid) {
         try { uid = localStorage.getItem(LS + '-uid') || ''; if (!uid) { uid = 'g' + rid(); localStorage.setItem(LS + '-uid', uid); } } catch (e) { uid = 'g' + rid(); }
       }
       myUid = uid;
       const [a, b] = await Promise.all([db.doc('players/A').get(), db.doc('players/B').get()]);
+      st('Kayıtlar okundu…');
       const pa = a.exists ? a.data() : null, pb = b.exists ? b.data() : null;
       G.players.A = pa; G.players.B = pb;
       let claim = null;
@@ -273,10 +276,13 @@ function makeOnlineBE(db) {
       else { me = 'A'; canPlay = false; note = 'Bu oyunda iki oyuncu da dolu. Şimdilik izleyicisin.'; }
       if (claim) {
         try {
+          st('Oyundaki yerin ayırtılıyor…');
           const p = newPlayer(uid, (pa || pb || {}).resetAt || 0);
           await db.doc('players/' + claim).set(plain(p));
+          st('Yer ayırtıldı…');
           G.players[claim] = p; me = claim;
         } catch (e) {
+          if (e === CANCEL) throw e;
           me = 'A'; canPlay = false; claim = null; noteBad = true;
           note = 'Oyunu görebiliyorsun ama oynama iznin yok. Oyunun sahibi Paylaş menüsünden seni e-postayla Editör olarak davet etmeli (herkese açık link kapalı olmalı).';
           view = me; this.subscribe(); return;
@@ -1009,7 +1015,7 @@ function readForm(side) {
 }
 function startCard() {
   let modeLine, bad = noteBad;
-  if (!ready) modeLine = 'Bağlanıyor…';
+  if (!ready) modeLine = '<span id="bootNote">' + esc(bootStage) + '</span>';
   else if (online) modeLine = canPlay ? 'Çevrimiçi oyun: <b>' + TEAM[me].name + '</b> takımdasın. ' + (G.players[other(me)] ? 'Rakibin: <b>' + esc(nameOf(other(me))) + '</b>.' : 'Rakibin henüz girmedi; attıkların onu bekleyecek.') : esc(note);
   else modeLine = (note ? esc(note) + ' ' : '') + 'Tek telefon modu: sırayla oynayın, "Telefonu ver" ile oyuncu değişir.';
   showModal(
@@ -1019,7 +1025,9 @@ function startCard() {
     '<li>Avlun kirliyse önce temizle: lekeye basılı tut.</li>' +
     '<li>Pislettikçe seviye atlar, daha çok pislik saçarsın.</li></ul>' +
     '<p class="note' + (bad ? ' bad' : '') + '">' + modeLine + '</p>' +
-    '<div class="row"><button class="btn primary" type="button" data-act="start"' + (ready ? '' : ' disabled') + '>' + (ready ? (started ? 'Devam et' : 'Başla') : 'Bağlanıyor…') + '</button></div>');
+    '<p id="errLine" class="note bad"' + (lastErr ? '' : ' hidden') + '>' + (lastErr ? 'Hata: ' + esc(lastErr) : '') + '</p>' +
+    '<div class="row"><button class="btn primary" type="button" data-act="start"' + (ready ? '' : ' disabled') + '>' + (ready ? (started ? 'Devam et' : 'Başla') : 'Bağlanıyor…') + '</button>' +
+    (ready ? '' : '<button class="btn" type="button" data-act="solo">Beklemeden tek telefonda dene</button>') + '</div>');
 }
 function menuCard(confirmReset) {
   showModal(
@@ -1045,6 +1053,7 @@ modalEl.addEventListener('click', e => {
   audioInit();
   const a = b.dataset.act;
   if (a === 'start') { if (canPlay) readForm(me); started = true; modalEl.hidden = true; hud(); }
+  else if (a === 'solo') { if (!ready) { bootAbort = true; useLocal('Tek telefonda deneme modundasın. Çevrimiçi oyun için sayfayı yenile.'); finishBoot(); } }
   else if (a === 'close') { modalEl.hidden = true; hud(); }
   else if (a === 'help') startCard();
   else if (a === 'menu') menuCard(false);
@@ -1061,25 +1070,47 @@ function useLocal(msg, bad) {
   online = false; note = msg || ''; noteBad = !!bad; G.splats.clear(); G.players = { A: null, B: null };
   be = localBE; be.init(); ready = true;
 }
-async function boot() {
-  const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
-  let db = null, user = null;
-  if (inClaude) {
-    try { [db, user] = await withTimeout(Promise.all([window.claude.use('db'), window.claude.use('user')]), 11000); } catch (e) {}
-  }
-  if (db) {
-    try {
-      const obe = makeOnlineBE(db);
-      await withTimeout(obe.init(user), 10000);
-      be = obe; online = true; ready = true;
-      document.addEventListener('visibilitychange', () => { if (document.hidden) obe.flush(); });
-    } catch (e) { useLocal('Çevrimiçi oyuna bağlanılamadı; sayfayı yenileyip tekrar dene.', true); }
-  } else if (inClaude) useLocal('Çevrimiçi oyuna bağlanamadın. Claude hesabınla giriş yapman ve oyunun sahibinin seni Paylaş menüsünden e-postayla Editör olarak davet etmesi gerekiyor.', true);
-  else useLocal('');
+const CANCEL = {};
+let bootAbort = false, bootStage = 'Bağlanıyor…', lastErr = '';
+function st(t) {
+  if (bootAbort) throw CANCEL;
+  bootStage = t;
+  const el = $('bootNote'); if (el && !ready) el.textContent = t;
+}
+function showErr(m) {
+  lastErr = String(m || 'bilinmeyen hata').slice(0, 160);
+  const el = $('errLine'); if (el) { el.textContent = 'Hata: ' + lastErr; el.hidden = false; }
+}
+window.addEventListener('error', e => showErr(e.message));
+window.addEventListener('unhandledrejection', e => showErr(e.reason && (e.reason.code || e.reason.message) || e.reason));
+function finishBoot() {
   regen(G.players[me]);
   resetChars();
   if (!started) startCard();
   hud();
+}
+async function boot() {
+  try {
+    let db = null, user = null;
+    if (inClaude) {
+      st('Oyun sunucusuna bağlanılıyor…');
+      db = await window.claude.use('db');
+      st('Hesabın okunuyor…');
+      user = await window.claude.use('user');
+    }
+    if (db) {
+      const obe = makeOnlineBE(db);
+      await obe.init(user);
+      st('Bağlandı');
+      be = obe; online = true; ready = true;
+      document.addEventListener('visibilitychange', () => { if (document.hidden) obe.flush(); });
+    } else if (inClaude) useLocal('Çevrimiçi oyuna bağlanamadın. Claude hesabınla giriş yapman ve oyunun sahibinin seni Paylaş menüsünden e-postayla Editör olarak davet etmesi gerekiyor.', true);
+    else useLocal('');
+  } catch (e) {
+    if (e === CANCEL || bootAbort) return;
+    useLocal('Çevrimiçi oyuna bağlanılamadı (' + ((e && (e.code || e.message)) || 'bilinmeyen hata') + '). Sayfayı yenileyip tekrar dene.', true);
+  }
+  finishBoot();
 }
 
 let last = performance.now();
