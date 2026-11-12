@@ -201,6 +201,7 @@ function newPlayer(uid, resetAt, keep) {
   return { uid, name: keep ? keep.name || '' : '', ch: keep ? keep.ch || '' : '', xp: 0, ammo: { t: 50, e: 0, m: 0, p: 0 }, regenAt: Date.now(), tick: 0, cleaned: 0, resetAt: resetAt || 0 };
 }
 const plain = p => ({ uid: p.uid, name: p.name || '', ch: p.ch || '', xp: p.xp, ammo: { ...p.ammo }, regenAt: p.regenAt, tick: p.tick, cleaned: p.cleaned || 0, resetAt: p.resetAt || 0 });
+const norm = d => (d ? { uid: d.uid || '', name: d.name || '', ch: d.ch || '', xp: +d.xp || 0, ammo: { t: 0, e: 0, m: 0, p: 0, ...(d.ammo || {}) }, regenAt: +d.regenAt || Date.now(), tick: +d.tick || 0, cleaned: +d.cleaned || 0, resetAt: +d.resetAt || 0 } : null);
 const splatData = s => ({ side: s.side, x: s.x, y: s.y, r: s.r, type: s.type, seed: s.seed, by: s.by, at: s.at, g: s.g || '', lv: s.lv || 1 });
 
 function regen(p) {
@@ -266,7 +267,7 @@ function makeOnlineBE(db) {
       myUid = uid;
       const [a, b] = await Promise.all([db.doc('players/A').get(), db.doc('players/B').get()]);
       st('Kayıtlar okundu…');
-      const pa = a.exists ? a.data() : null, pb = b.exists ? b.data() : null;
+      const pa = a.exists ? norm(a.data()) : null, pb = b.exists ? norm(b.data()) : null;
       G.players.A = pa; G.players.B = pb;
       let claim = null;
       if (pa && pa.uid === uid) me = 'A';
@@ -295,7 +296,7 @@ function makeOnlineBE(db) {
     subscribe() {
       for (const side of ['A', 'B']) {
         db.doc('players/' + side).onSnapshot(snap => {
-          const d = snap.exists ? snap.data() : null;
+          const d = snap.exists ? norm(snap.data()) : null;
           if (side === me && canPlay) {
             const mine = G.players[me];
             if (d && mine && (d.resetAt || 0) > (mine.resetAt || 0)) { G.players[me] = d; toast('Oyun sıfırlandı'); }
