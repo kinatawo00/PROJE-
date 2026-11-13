@@ -137,7 +137,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .live { width: 8px; height: 8px; border-radius: 50%; background: #5fe06a; flex: none; }
 .pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .pc { background: #f1e2b6; border: 3px solid #c9ae6e; border-radius: 14px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; color: var(--ink); font-family: var(--display); font-weight: 800; font-size: 14px; }
-.pc canvas { width: 84px; height: 104px; }
+.pc img { width: 84px; height: 104px; object-fit: contain; }
 .pc.sel { border-color: var(--tomato); background: #ffe9a8; }
 </style>
 </head>
@@ -718,14 +718,42 @@ function fig(g, key, dir, a) {
   }
   g.restore();
 }
+/* Karakter kartlarından birebir kesilmiş görünüşler (ön / yan / arka) */
+const SPR = {};
+for (const k of Object.keys(CH)) for (const v of ['front', 'side', 'back']) { const im = new Image(); im.src = 'karakter/' + k + '_' + v + '.png'; SPR[k + '_' + v] = im; }
+function drawSprite(key, c, holding) {
+  const v = c.dir === 'down' ? 'front' : c.dir === 'up' ? 'back' : 'side', im = SPR[key + '_' + v];
+  if (!im || !im.complete || !im.naturalWidth) return false;
+  const h = 23, w = h * im.naturalWidth / im.naturalHeight, sw = c.moving ? Math.sin(c.walk) : 0;
+  const th = c.throwT > 0 ? Math.sin((1 - c.throwT / 0.3) * Math.PI) : 0, scrub = c.scrub > 0, flip = c.dir === 'left' ? -1 : 1;
+  ctx.save();
+  ctx.translate(0, -(c.moving ? Math.abs(sw) * 0.9 : 0) - th * 1.8);
+  ctx.rotate((c.moving ? sw * 0.07 : 0) + (scrub ? Math.sin(time * 24) * 0.05 : 0) + (v === 'side' ? th * 0.22 * flip : 0));
+  ctx.scale(flip, (1 + (c.moving || scrub ? 0 : Math.sin(time * 3) * 0.012)) * (1 + th * 0.07));
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(im, -w / 2, -h, w, h);
+  if (holding && th < 0.05 && !scrub) {
+    const hx = v === 'side' ? w * 0.1 : (v === 'back' ? 1 : -1) * w * 0.42;
+    ctx.beginPath(); ctx.arc(hx, -h * 0.41, 1.6, 0, TAU); ctx.fillStyle = ITEMS[holding].col; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 0.4; ctx.stroke();
+  }
+  if (scrub) {
+    const m = Math.sin(time * 24) * 1.6, x1 = v === 'side' ? w * 0.1 : 0, x2 = v === 'front' ? m : w / 2 + 2.5 + m, y2 = v === 'front' ? 2.4 : v === 'back' ? -1.5 : 0.8;
+    ctx.beginPath(); ctx.moveTo(x1, -h * 0.42); ctx.lineTo(x2, y2); ctx.lineWidth = 0.8; ctx.strokeStyle = '#8a5a2b'; ctx.stroke();
+    rr(x2 - 2.8, y2 - 0.9, 5.6, 2, 0.7); ctx.fillStyle = '#e6eef5'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 0.35; ctx.stroke();
+  }
+  ctx.restore();
+  return true;
+}
 function drawChar(c, side, holding) {
   const t = TEAM[side];
   ctx.save(); ctx.translate(c.x, c.y);
   ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 0, 6.2, 2.3, 0, 0, TAU); ctx.fill();
   ctx.strokeStyle = t.main; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.ellipse(0, 0, 7.4, 2.9, 0, 0, TAU); ctx.stroke();
-  ctx.save(); ctx.scale(1.3, 1.3);
-  fig(ctx, chOf(side), c.dir, { walk: c.walk, moving: c.moving, throwT: c.throwT, scrub: c.scrub, t: time, hold: holding });
-  ctx.restore();
+  if (!drawSprite(chOf(side), c, holding)) {
+    ctx.save(); ctx.scale(1.3, 1.3);
+    fig(ctx, chOf(side), c.dir, { walk: c.walk, moving: c.moving, throwT: c.throwT, scrub: c.scrub, t: time, hold: holding });
+    ctx.restore();
+  }
   ctx.font = '800 3.1px "Baloo 2", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
   ctx.lineWidth = 0.9; ctx.strokeStyle = INK; ctx.lineJoin = 'round';
   const nm = nameOf(side);
@@ -1024,7 +1052,7 @@ function formHtml(side) {
   const p = G.players[side], cur = p && CH[p.ch] ? p.ch : (CH[(G.players[other(side)] || {}).ch] ? (G.players[other(side)].ch === 'cap' ? 'hair' : 'cap') : chOf(side));
   return '<label class="field" for="nameIn">Adın<input id="nameIn" type="text" maxlength="12" autocomplete="off" placeholder="' + TEAM[side].name + ' oyuncu" value="' + esc((p && p.name) || '') + '"></label>' +
     '<div class="field">Karakterini seç</div><div class="pick">' +
-    Object.keys(CH).map(k => '<button type="button" class="pc' + (k === cur ? ' sel' : '') + '" data-ch="' + k + '"><canvas data-fig="' + k + '"></canvas>' + CH[k].label + '</button>').join('') + '</div>';
+    Object.keys(CH).map(k => '<button type="button" class="pc' + (k === cur ? ' sel' : '') + '" data-ch="' + k + '"><img src="karakter/' + k + '_front.png" alt="" width="84" height="104">' + CH[k].label + '</button>').join('') + '</div>';
 }
 function readForm(side) {
   const p = G.players[side], inp = $('nameIn'), pick = modalEl.querySelector('.pc.sel');

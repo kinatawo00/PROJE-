@@ -26,4 +26,5 @@ Sunucuya ulaşılamazsa oyun tek telefonda sırayla oynanabilir.
 ## Dosyalar
 
 - `index.html`: oyunun tamamı (HTML + CSS + JS)
+- `karakter/`: karakter kartlarından kesilmiş ön / yan / arka görünüşler
 - `mqtt.min.js`: MQTT.js 5.10.1 tarayıcı paketi (MIT lisansı)
