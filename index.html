@@ -89,6 +89,8 @@ button { touch-action: manipulation; -webkit-touch-callout: none; }
 .xp { height: 8px; border-radius: 4px; background: #d9c898; overflow: hidden; }
 .xp i { display: block; height: 100%; background: var(--blood); }
 
+#zoom { position: absolute; right: max(12px, env(safe-area-inset-right, 0px)); z-index: 2; display: flex; gap: 4px; }
+#zoom .btn { width: 34px; padding: 2px 0; font-size: 20px; line-height: 1.3; }
 #tip { position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 4; padding: 8px 10px; font-size: 13px; line-height: 1.35; pointer-events: none; }
 #tip b { font-family: var(--display); font-size: 16px; color: var(--sun); }
 #log { position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); z-index: 2; bottom: 200px; display: flex; flex-direction: column; gap: 3px; pointer-events: none; max-width: 70%; }
@@ -134,6 +136,7 @@ button { touch-action: manipulation; -webkit-touch-callout: none; }
   <div id="banner">Yükleniyor…</div>
   <div id="toast" hidden></div>
   <div id="tip" class="panel" hidden></div>
+  <div id="zoom"><button class="btn" type="button" id="zIn" aria-label="Yakınlaştır">+</button><button class="btn" type="button" id="zOut" aria-label="Uzaklaştır">−</button></div>
   <div id="log"></div>
   <footer id="bottom" class="bar">
     <div id="res" class="panel"><span id="gold">0</span><span id="inc"></span><span id="clock"></span><span id="kd">Kalen</span><div class="hp" id="myHp"><i></i></div></div>
@@ -155,17 +158,19 @@ button { touch-action: manipulation; -webkit-touch-callout: none; }
 
 /* ---------- Sabitler ---------- */
 const W = 100, H = 214, YD = H / 2 - 44, TAU = Math.PI * 2, INK = '#1b1714';
-const LX = [18, 50, 82], TWX = [34, 66], PADT = 40, PADB = 6, GY0 = -PADT - 24, GY1 = H + PADB + 80;
+const LX = [18, 50, 82], TWX = [34, 66], PADT = 40, PADB = 6, PADX = 0;
+let GY0 = -PADT - 24, GY1 = H + PADB + 80, GX0 = -8, scFit = 1, scMax = 1;
 const WALL_Y = { A: 177, B: 37 }, KEEP_Y = { A: 196, B: 18 }, SPAWN_Y = { A: 173, B: 41 };
 const UNITS = {
   m: { name: 'Muhafız',   hp: 75,  dmg: 8,  rate: 0.8, range: 5,  sp: 10,  cost: 20,  lvl: 1 },
-  n: { name: 'Nişancı',   hp: 30,  dmg: 6,  rate: 0.9, range: 16, sp: 9,   cost: 30,  lvl: 1 },
+  n: { name: 'Nişancı',   hp: 36,  dmg: 8,  rate: 0.9, range: 20, sp: 9,   cost: 30,  lvl: 1 },
   z: { name: 'Zırhlı',    hp: 260, dmg: 16, rate: 1.2, range: 6,  sp: 6,   cost: 70,  lvl: 2 },
-  d: { name: 'Demir Dev', hp: 380, dmg: 40, rate: 2.0, range: 12, sp: 4.5, cost: 180, lvl: 3, siege: 2 },
-  s: { name: 'Süvari',    hp: 110, dmg: 12, rate: 0.9, range: 5,  sp: 17,  cost: 40,  lvl: 2, charge: 2.5 },
+  d: { name: 'Demir Dev', hp: 480, dmg: 60, rate: 2.0, range: 12, sp: 4.5, cost: 180, lvl: 3, siege: 2 },
+  s: { name: 'Süvari',    hp: 135, dmg: 13, rate: 0.9, range: 5,  sp: 17,  cost: 40,  lvl: 2, charge: 2.5 },
   k: { name: 'Koçbaşı',   hp: 260, dmg: 60, rate: 2.2, range: 5,  sp: 5.5, cost: 80,  lvl: 2, ram: true },
 };
-const ORDER = ['m', 'n', 's', 'z', 'k', 'd'], UPC = [0, 120, 260], INCOME = [0, 5, 7, 9], MAXU = 14;
+const ORDER = ['m', 'n', 's', 'z', 'k', 'd'], UPC = [0, 120, 260], MAXU = 14;
+const UCAT = { m: 0, z: 0, n: 1, s: 2, k: 3, d: 3 }, UGC = [60, 100, 150], UGN = ['Piyade', 'Nişancı', 'Süvari', 'Kuşatma'];
 const TRAP_Y = { A: WALL_Y.A - 24, B: WALL_Y.B + 24 }, CAT = { A: [14, WALL_Y.A + 10], B: [86, WALL_Y.B - 10] }, TRE = { A: [86, WALL_Y.A + 10], B: [14, WALL_Y.B - 10] };
 const AR_Y = { A: WALL_Y.A - 36, B: WALL_Y.B + 36 }, arX = (s, l) => LX[l] + (s === 'A' ? 7 : -7);
 const RANKS = ['Acemi', 'Er', 'Çavuş', 'Yüzbaşı', 'Komutan', 'Lord', 'Kral', 'İmparator'];
@@ -180,9 +185,9 @@ const EMOJI = ['😀', '😂', '😡', '😭', '👍', '🍅', '💀', '👑'];
 const other = s => (s === 'A' ? 'B' : 'A');
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-const MATCH_T = 360, ESC_T = 90, incomeOf = (l, t) => INCOME[l] + Math.min(6, Math.floor(t / 45)), escOf = t => 1 + Math.max(0, (t - ESC_T) / 60);
+const MATCH_T = 360, ESC_T = 90, incomeOf = (l, t) => Math.round((5 + Math.min(6, Math.floor(t / 45))) * (1 + 0.1 * (l - 1))), escOf = t => 1 + Math.max(0, (t - ESC_T) / 60);
 const mult = l => 1 + 0.4 * (l - 1);
-const MAXHP = l => ({ keep: 800 * mult(l), wall: 350 * mult(l), tw: 220 * mult(l) });
+const MAXHP = l => ({ keep: 650 * mult(l), wall: 300 * mult(l), tw: 180 * mult(l) });
 const $ = id => document.getElementById(id);
 const LS = 'domates-savasi-v3';
 
@@ -204,7 +209,7 @@ const rankOf = p => RANKS[Math.min(RANKS.length - 1, lvlOf(p) - 1)];
 const lvlOf = p => 1 + Math.floor(Math.sqrt(((p && p.xp) || 0) / 60));
 
 /* ---------- Simülasyon (oda sahibinde ya da bot maçında çalışır) ---------- */
-const newSide = () => ({ gold: 80, lvl: 1, keep: 800, wall: 350, tw: [220, 220], tc: [0, 0], sh: 0, cb: 0, cs: 0, cr: 0, dmg: 0, cat: 0, cc: 3, tre: 0, tcd: 4, ar: [0, 0, 0], ac: [0, 0, 0], tr: [0, 0, 0], wc: 0, cw: 0 });
+const newSide = () => ({ gold: 80, lvl: 1, keep: 650, wall: 300, tw: [180, 180], ug: [0, 0, 0, 0], tc: [0, 0], sh: 0, cb: 0, cs: 0, cr: 0, dmg: 0, cat: 0, cc: 3, tre: 0, tcd: 4, ar: [0, 0, 0], ac: [0, 0, 0], tr: [0, 0, 0], wc: 0, cw: 0 });
 const newSim = () => ({ t: 0, ph: 'lobby', cd: 0, win: null, bot: null, rdy: { A: false, B: false }, P: { A: newSide(), B: newSide() }, U: [], Bm: [], fx: [], nid: 1, bt: 1.5 });
 function fx(...a) { a.unshift(FID++); S.fx.push({ a, at: performance.now() }); }
 function structFor(e, lane) {
@@ -222,6 +227,7 @@ function hurtStruct(e, st, dmg, by) {
   else p.tw[st] = Math.max(0, p.tw[st] - dmg);
   S.P[by].dmg += dmg;
 }
+const ugm = (side, k) => 1 + 0.2 * S.P[side].ug[UCAT[k]];
 function applyCmd(side, c) {
   if (!S || !c) return;
   const p = S.P[side];
@@ -232,7 +238,7 @@ function applyCmd(side, c) {
   if (c.c === 'spawn') {
     const d = UNITS[c.k], l = c.l | 0;
     if (!d || l < 0 || l > 2 || p.lvl < d.lvl || p.gold < d.cost || S.U.filter(u => u.o === side).length >= MAXU) return;
-    p.gold -= d.cost; S.U.push({ id: S.nid++, o: side, k: c.k, l, y: SPAWN_Y[side], hp: d.hp, cd: 0.3 });
+    p.gold -= d.cost; S.U.push({ id: S.nid++, o: side, k: c.k, l, y: SPAWN_Y[side], hp: d.hp * ugm(side, c.k), cd: 0.3 });
   } else if (c.c === 'bomb') {
     if (S.t < p.cb) return;
     p.cb = S.t + 6; S.Bm.push({ o: side, x: clamp(+c.x || 50, 4, 96), y: clamp(+c.y || H / 2, 4, H - 4), at: S.t + 0.9 }); fx('thr', side);
@@ -247,6 +253,11 @@ function applyCmd(side, c) {
     const add = 110 * mult(p.lvl), st = cand[0];
     if (st === 'keep') p.keep = Math.min(mh.keep, p.keep + add); else if (st === 'wall') p.wall = Math.min(mh.wall, p.wall + add); else p.tw[st] = Math.min(mh.tw, p.tw[st] + add);
     const [x, y] = structPos(side, st, 1); fx('rep', x, y);
+  } else if (c.c === 'ug') {
+    const i = c.i | 0, lv = p.ug[i]; if (i < 0 || i > 3 || lv >= 3 || p.gold < UGC[lv]) return;
+    p.gold -= UGC[lv]; p.ug[i] = lv + 1;
+    for (const u of S.U) if (u.o === side && UCAT[u.k] === i) u.hp *= (1 + 0.2 * (lv + 1)) / (1 + 0.2 * lv);
+    fx('ugd', side, i);
   } else if (c.c === 'cat') {
     if (p.cat > 0 || p.gold < 90) return;
     p.gold -= 90; p.cat = 150; p.cc = 2; fx('bld', CAT[side][0], CAT[side][1]);
@@ -284,16 +295,18 @@ function stepSim(dt) {
     const d = UNITS[u.k], dir = u.o === 'A' ? -1 : 1, e = other(u.o), ux = LX[u.l], pe = S.P[e], buff = S.P[u.o].wc > S.t ? 1.5 : 1;
     u.cd -= dt * buff;
     if (pe.tr[u.l] > 0 && !u.tp && Math.abs(u.y - TRAP_Y[e]) < 2) { u.tp = 1; u.hp -= 30; if (u.hp <= 0) u.kb = e; pe.tr[u.l]--; fx('trap', ux, TRAP_Y[e]); }
+    const dm = d.dmg * ugm(u.o, u.k), blocked = S.U.some(v => v !== u && v.o === u.o && v.l === u.l && (v.y - u.y) * dir > 0 && (v.y - u.y) * dir < 3.6);
+    const reach = d.range + (blocked ? (d.range > 8 ? 11 : 5) : 0); // sırada bekleyen de önündekinin üstünden vurabilir
     let tgt = null, best = 1e9;
-    if (!d.ram) for (const v of S.U) if (v.o !== u.o && v.l === u.l && v.hp > 0) { const dd = Math.abs(v.y - u.y); if (dd <= d.range + 1 && dd < best) { best = dd; tgt = v; } }
+    if (!d.ram) for (const v of S.U) if (v.o !== u.o && v.l === u.l && v.hp > 0) { const dd = Math.abs(v.y - u.y); if (dd <= reach + 1 && dd < best) { best = dd; tgt = v; } }
     if (tgt) {
-      if (u.cd <= 0) { u.cd = d.rate; tgt.hp -= d.dmg * (d.charge && !u.ch ? d.charge : 1); u.ch = 1; if (tgt.hp <= 0) tgt.kb = u.o; fx(d.range > 8 ? 'sh' : 'hit', ux, u.y, ux, tgt.y, u.o, u.id); }
+      if (u.cd <= 0) { u.cd = d.rate; tgt.hp -= dm * (d.charge && !u.ch ? d.charge : 1); u.ch = 1; if (tgt.hp <= 0) tgt.kb = u.o; fx(d.range > 8 ? 'sh' : 'hit', ux, u.y, ux, tgt.y, u.o, u.id); }
       continue;
     }
     const st = structFor(e, u.l), ty = st === 'keep' ? KEEP_Y[e] - dir * 10 : WALL_Y[e] - dir * 3;
-    if ((ty - u.y) * dir <= d.range) {
-      if (u.cd <= 0) { u.cd = d.rate; const [sx, sy] = structPos(e, st, u.l); hurtStruct(e, st, d.dmg * (d.siege || 1), u.o); fx(d.range > 8 ? 'sh' : 'hit', ux, u.y, sx, sy, u.o, u.id); }
-    } else if (!S.U.some(v => v !== u && v.o === u.o && v.l === u.l && (v.y - u.y) * dir > 0 && (v.y - u.y) * dir < 3.6)) u.y += dir * d.sp * buff * dt;
+    if ((ty - u.y) * dir <= d.range + (blocked ? 9 : 0)) { // kaleye yığılan herkes vurur
+      if (u.cd <= 0) { u.cd = d.rate; const [sx, sy] = structPos(e, st, u.l); hurtStruct(e, st, dm * (d.siege || 1), u.o); fx(d.range > 8 ? 'sh' : 'hit', ux, u.y, sx, sy, u.o, u.id); }
+    } else if (!blocked) u.y += dir * d.sp * buff * dt;
   }
   for (const s of ['A', 'B']) { // kuleler
     const p = S.P[s];
@@ -364,6 +377,7 @@ function botThink(dt) {
   if (p.keep < mh.keep * 0.5 && p.gold >= 60 && S.t >= p.cs) return applyCmd(b, { c: 'shield' });
   if ((p.wall < mh.wall * 0.5 || p.tw[0] <= 0 || p.tw[1] <= 0 || p.keep < mh.keep * 0.6) && p.gold >= 40 && S.t >= p.cr && Math.random() < 0.5) return applyCmd(b, { c: 'repair' });
   if (p.lvl < 3 && p.gold >= UPC[p.lvl] + 30 && Math.random() < 0.3) return applyCmd(b, { c: 'up' });
+  { const i = (Math.random() * 4) | 0; if (p.ug[i] < 3 && p.gold >= UGC[p.ug[i]] + 40 && Math.random() < 0.12) return applyCmd(b, { c: 'ug', i }); }
   const mineU = S.U.filter(u => u.o === b).length, foeL = [0, 1, 2].map(l => S.U.filter(u => u.o === e && u.l === l).length);
   if (S.t >= p.cw && mineU >= 3) applyCmd(b, { c: 'cry' });
   if (p.cat <= 0 && p.gold >= 90 && Math.random() < 0.2) return applyCmd(b, { c: 'cat' });
@@ -382,7 +396,7 @@ let seq = 0;
 function snap() {
   const now = performance.now(), r1 = v => Math.round(v * 10) / 10;
   S.fx = S.fx.filter(f => now - f.at < 1500);
-  const side = s => { const p = S.P[s]; return { g: Math.floor(p.gold), l: p.lvl, k: Math.ceil(p.keep), w: Math.ceil(p.wall), t: p.tw.map(Math.ceil), sh: r1(Math.max(0, p.sh - S.t)), cb: r1(Math.max(0, p.cb - S.t)), cs: r1(Math.max(0, p.cs - S.t)), cr: r1(Math.max(0, p.cr - S.t)), d: Math.round(p.dmg), c: p.cat > 0 ? 1 : 0, tb: p.tre > 0 ? 1 : 0, ar: p.ar.map(v => (v > 0 ? 1 : 0)), tr: p.tr.slice(), wc: r1(Math.max(0, p.wc - S.t)), cw: r1(Math.max(0, p.cw - S.t)) }; };
+  const side = s => { const p = S.P[s]; return { g: Math.floor(p.gold), l: p.lvl, k: Math.ceil(p.keep), w: Math.ceil(p.wall), t: p.tw.map(Math.ceil), sh: r1(Math.max(0, p.sh - S.t)), cb: r1(Math.max(0, p.cb - S.t)), cs: r1(Math.max(0, p.cs - S.t)), cr: r1(Math.max(0, p.cr - S.t)), d: Math.round(p.dmg), ug: p.ug.slice(), c: p.cat > 0 ? 1 : 0, tb: p.tre > 0 ? 1 : 0, ar: p.ar.map(v => (v > 0 ? 1 : 0)), tr: p.tr.slice(), wc: r1(Math.max(0, p.wc - S.t)), cw: r1(Math.max(0, p.cw - S.t)) }; };
   return { q: ++seq, h: myUid, ph: S.ph, t: Math.floor(S.t), tu: S.timeUp ? 1 : 0, cd: r1(S.cd), win: S.win, bot: S.bot, r: [S.rdy.A, S.rdy.B], P: { A: side('A'), B: side('B') },
     U: S.U.map(u => [u.id, u.o, u.k, u.l, r1(u.y), Math.ceil(u.hp)]), Bm: S.Bm.map(b => [b.o, r1(b.x), r1(b.y), r1(b.at - S.t), b.r || 0]), fx: S.fx.map(f => f.a) };
 }
@@ -394,18 +408,26 @@ const flip = () => me === 'B';
 const vx = x => (flip() ? W - x : x), vy = y => (flip() ? H - y : y);
 let camY = 0, camMin = 0, camMax = 0, viewTop = 0, viewH = 0, camInit = false;
 function setCam(y) { camY = clamp(y, camMin, camMax); oy = viewTop - camY * sc; }
+function setZoom(z, focusY) { // focusY: ekranda sabit kalacak nokta
+  const wy = camY + (focusY - viewTop) / sc, was = camMax > camMin;
+  sc = clamp(z, scFit, scMax); ox = (cw - W * sc) / 2;
+  camMin = -PADT; camMax = H + PADB - viewH / sc;
+  if (camMax <= camMin) camMin = camMax = (camMin + camMax) / 2;
+  setCam(was ? wy - (focusY - viewTop) / sc : camMax); // ilk yakınlaştırmada kendi kalene gider
+}
 function resize() {
   const r = cv.getBoundingClientRect();
   cw = r.width; ch = r.height; dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
   const topH = $('top').offsetHeight + 4, botH = $('bottom').offsetHeight + 30;
   viewTop = topH; viewH = ch - topH - botH;
-  sc = Math.max(0.5, Math.min(cw / W, viewH / 95)); // harita ekran genişliğine yayılır, dikeyde kaydırılır
-  ox = (cw - W * sc) / 2;
-  camMin = -PADT; camMax = H + PADB - viewH / sc;
-  if (camMax < camMin) camMin = camMax = (camMin + camMax) / 2;
-  setCam(camInit ? camY : camMax); camInit = true;
+  scFit = Math.max(0.5, Math.min(cw / W, viewH / (H + PADT + PADB))); // açılış: bütün harita sığar
+  scMax = Math.max(scFit, Math.min(cw / W, viewH / 80));               // en yakın: harita ekran genişliğinde
+  GX0 = -(cw / scFit - W) / 2 - 8; GY0 = -PADT - viewTop / scFit - 6; GY1 = H + PADB + (ch - viewTop - viewH) / scFit + 6;
+  if (!camInit) sc = scFit;
+  camInit = true; setZoom(sc, viewTop + viewH / 2);
   bannerEl.style.bottom = (botH - 24) + 'px'; $('log').style.bottom = (botH + 6) + 'px'; $('tip').style.bottom = (botH - 26) + 'px';
+  $('zoom').style.top = (viewTop + 6) + 'px';
   buildGround();
 }
 function rr(x, y, w, h, r, g) {
@@ -450,7 +472,7 @@ function sprite(key, x0, y0, w, h, fn) {
     c = document.createElement('canvas'); c.width = Math.ceil(w * AS); c.height = Math.ceil(h * AS);
     const g = c.getContext('2d'); g.setTransform(AS, 0, 0, AS, -x0 * AS, -y0 * AS); fn(g); pixelate(c, true); cache.set(key, c);
   }
-  ctx.imageSmoothingEnabled = false; ctx.drawImage(c, x0, y0, c.width / AS, c.height / AS);
+  ctx.imageSmoothingEnabled = sc < scMax * 0.98; ctx.drawImage(c, x0, y0, c.width / AS, c.height / AS);
 }
 const elevAt = y => { const d = Math.abs(y - H / 2); return d >= YD + 4 ? E : d > YD ? (d - YD) / 4 * E : 0; };
 const Y = y => { const v = vy(y); return v - elevAt(v); };
@@ -470,7 +492,7 @@ function isoBox(g, cx, cy, a, h, top, left, right, lw) {
 }
 const riverY = x => H / 2 + Math.sin((x - 50) / 15) * 3.2;
 function terr(x, y) {
-  const inF = x > -3 && x < 103, dyc = Math.abs(y - H / 2), dr = Math.abs(y - riverY(x));
+  const inF = x > -3 && x < 103 && y > -PADT + 4 && y < H + PADB + 8, dyc = Math.abs(y - H / 2), dr = Math.abs(y - riverY(x));
   const wob = dyc > YD - 3 || dr < 8 ? 0 : (noise2(x / 9 + 5, y / 9) - 0.5) * 3.4, lane = inF && LX.some(l => Math.abs(l - x) < 3.7 + wob);
   if (dr < 4.6) return lane ? { t: 'bridge', lev: 0 } : { t: 'water', lev: -1 };
   if (inF && dyc > YD) return lane && dyc <= YD + 4 ? { t: 'stair', lev: 0.5 } : { t: 'yard', lev: 1 };
@@ -584,12 +606,12 @@ function drawDecor(g, d) {
   }
 }
 function buildGround() {
-  PXR = Math.max(1, Math.round(dpr * 0.7)); AS = sc * dpr / PXR; cache.clear();
-  ground = document.createElement('canvas'); ground.width = Math.ceil(cv.width / PXR); ground.height = Math.ceil((GY1 - GY0) * AS);
+  PXR = Math.max(1, Math.round(dpr * 0.7)); AS = scMax * dpr / PXR; cache.clear();
+  ground = document.createElement('canvas'); ground.width = Math.ceil((W - 2 * GX0) * AS); ground.height = Math.ceil((GY1 - GY0) * AS);
   const g = ground.getContext('2d'), decor = []; LIGHTS = [];
   g.fillStyle = '#3f7f30'; g.fillRect(0, 0, ground.width, ground.height);
-  g.setTransform(AS, 0, 0, AS, ox * dpr / PXR, -GY0 * AS);
-  const b = TH / 2, x0 = -ox / sc - TW, x1 = (cw - ox) / sc + TW, y0 = GY0 - TH, y1 = GY1 + TH * 3;
+  g.setTransform(AS, 0, 0, AS, -GX0 * AS, -GY0 * AS);
+  const b = TH / 2, x0 = GX0 - TW, x1 = W - GX0 + TW, y0 = GY0 - TH, y1 = GY1 + TH * 3;
   for (let r = Math.floor(y0 / b); r * b < y1; r++) for (let c = Math.floor(x0 / TW); c * TW < x1; c++) drawTile(g, c * TW + (r & 1) * TW / 2, r * b, c, r, decor);
   for (const l of LX) for (const s of [-1, 1]) decor.push({ k: 'parapet', x: l + s * 4.6, y: riverY(l) + 6, y0: riverY(l) - 5.5, y1: riverY(l) + 6.5 });
   for (const [i, s, yy] of [[0, -1, H / 2 - 20], [1, 1, H / 2 - 34], [2, 1, H / 2 - 20], [0, -1, H / 2 + 20], [1, -1, H / 2 + 34], [2, 1, H / 2 + 20]]) { decor.push({ k: 'lamp', x: LX[i] + s * 6.5, y: yy }); LIGHTS.push({ x: LX[i] + s * 6.5, y: yy - 9, c: '#ffb347', r: 9 }); }
@@ -884,6 +906,7 @@ function playFx(f) {
   else if (k === 'trap') { burst(vx(f[2]), Y(f[3]) - 2, ['#c9c9d2', '#77727e', '#fff'], 10, 22); sfx('hit'); }
   else if (k === 'dust') { const x = vx(f[2]), y = Y(f[3]); burst(x, y, ['#b89a68', '#8d8a84', '#d8c9a0'], 20, 30); shake = 0.15; sfx('boom'); }
   else if (k === 'cat') sfx('spawn');
+  else if (k === 'ugd') { sfx('level'); if (f[2] === me) toast(UGN[f[3]] + ' gelişti', 'Can ve hasar +%20'); }
   else if (k === 'esc') { toast('Kuşatma kızışıyor!', 'Yapılara verilen hasar artıyor'); sfx('level'); }
   else if (k === 'bld') { burst(vx(f[2]), Y(f[3]) - 4, ['#ffd24a', '#a5733c', '#fff'], 20, 30); sfx('rep'); }
   else if (k === 'cry') { kingT[f[2]] = 0.35; parts.push({ x: 50, y: Y(KEEP_Y[f[2]]) - 10, vx: 0, vy: 0, life: 0.5, max: 0.5, r: 4, col: 'rgba(255,210,74,.9)', drag: 0, ring: 1, grow: 90 }); sfx('level'); toast('Savaş narası!', nameOf(f[2]) + ' ordusu hızlandı'); }
@@ -900,11 +923,12 @@ function adopt(v) {
   for (const f of v.fx) if (f[0] > lastFx) { lastFx = f[0]; if (started) playFx(f); }
   if (v.ph !== prevPh) { const from = prevPh; prevPh = v.ph; phaseChange(from, v.ph); }
 }
-const mmRect = () => ({ x: cw - 34, y: viewTop + 44, w: 22, h: 150 });
+const mmRect = () => ({ x: cw - 34, y: viewTop + 92, w: 22, h: 150 });
 function draw() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = '#3f7f30'; ctx.fillRect(0, 0, cv.width, cv.height);
-  if (ground) ctx.drawImage(ground, 0, (oy + GY0 * sc) * dpr, ground.width * PXR, ground.height * PXR);
+  ctx.imageSmoothingEnabled = sc < scMax * 0.98;
+  if (ground) ctx.drawImage(ground, (ox + GX0 * sc) * dpr, (oy + GY0 * sc) * dpr, (W - 2 * GX0) * sc * dpr, (GY1 - GY0) * sc * dpr);
   const sx = shake > 0 ? (Math.random() - .5) * shake * 8 : 0, sy = shake > 0 ? (Math.random() - .5) * shake * 8 : 0;
   ctx.setTransform(sc * dpr, 0, 0, sc * dpr, (ox + sx) * dpr, (oy + sy) * dpr);
   for (const d of decals) { // domates lekeleri
@@ -954,7 +978,9 @@ function draw() {
     if (V.P[r.o].wc > 0) { ctx.strokeStyle = 'rgba(255,210,74,.9)'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.ellipse(0, 0, 5, 2, 0, 0, TAU); ctx.stroke(); }
     sprite(key, -11, -28, 22, 32, g => drawUnit(g, r.k, r.o, back, wf, af));
     ctx.restore(); ctx.filter = 'none';
-    hpBar(x, y - (r.k === 'd' ? 20 : 15.5), r.k === 'd' ? 8 : 5, r.hp / UNITS[r.k].hp);
+    const ul = V.P[r.o].ug[UCAT[r.k]], top = y - (r.k === 'd' ? 20 : 15.5);
+    hpBar(x, top, r.k === 'd' ? 8 : 5, r.hp / (UNITS[r.k].hp * (1 + 0.2 * ul)));
+    ctx.fillStyle = '#ffd24a'; for (let i = 0; i < ul; i++) ctx.fillRect(x - ul * 0.7 + i * 1.4 + 0.15, top - 1.5, 1, 1);
   } });
   ents.sort((p, q) => p.y - q.y).forEach(e => e.f());
   for (const s of ['A', 'B']) if (V.P[s].sh > 0) { // kalkan
@@ -1183,17 +1209,17 @@ function buildCards() {
 }
 let actTab = 0, tipHeld = false;
 const UINFO = {
-  m: ['Ucuz ön saf askeri. Kalabalık basınca etkili.', 'Süvari ve Zırhlı ile başa baş', 'Nişancı, Demir Dev'],
-  n: ['Uzaktan vurur, canı azdır. Önüne Muhafız koy.', 'Muhafız', 'Süvari, Zırhlı, domates bombası'],
-  s: ['Çok hızlıdır, ilk vuruşu 2,5 kat hasar verir.', 'Nişancı', 'Demir Dev'],
-  z: ['Ağır zırhlı, yavaş ama çok dayanıklı.', 'Nişancı', 'Demir Dev'],
+  m: ['Ucuz ön saf askeri. Kalabalık basınca etkili.', 'Süvari', 'Nişancı, Zırhlı, Demir Dev'],
+  n: ['Uzaktan vurur; önünde üç sıra asker olsa da üstlerinden ateş eder. Canı azdır.', 'Muhafız, Zırhlı', 'Süvari, Demir Dev, domates bombası'],
+  s: ['Çok hızlıdır, ilk vuruşu 2,5 kat hasar verir.', 'Nişancı, Zırhlı', 'Muhafız'],
+  z: ['Ağır zırhlı, yavaş ama çok dayanıklı.', 'Muhafız', 'Nişancı, Süvari, Demir Dev'],
   k: ['Askerlere vurmaz; doğrudan sura ve kaleye gider.', 'Kuleler, sur, ana kale', 'Bütün askerler (korumasız gönderme)'],
-  d: ['Yürüyen makine. Yapılara çift hasar verir.', 'Bütün birlikler ve yapılar', 'Pahalı ve yavaş; tuzak ve bomba'],
+  d: ['Yürüyen makine. Uzaktan vurur, yapılara çift hasar verir.', 'Muhafız, Nişancı, Zırhlı, yapılar', 'Pahalı ve yavaş; Süvari ile başa baş'],
 };
 const ADESC = {
   repair: 'En çok hasar almış yapını onarır. Yıkılmış kuleyi de geri getirir.',
   shield: '5 saniye boyunca kalen hiç hasar almaz. 35 saniyede bir kullanılır.',
-  up: 'Kale kademesini yükseltir: can %40, kule hasarı %35 artar, gelir artar, yeni birlikler açılır.',
+  up: 'Kale kademesini yükseltir: can %40, kule hasarı %35 artar, yeni birlikler açılır. Altın geliri 2. kademede %10, 3. kademede %20 artar.',
   cry: '6 saniye boyunca bütün ordun %50 hızlanır ve daha sık vurur. Bedava, 30 saniyede bir.',
   arch: 'Seçili şeridin kenarına kurulur, o şeride giren düşmanı vurur. Düşman bombasıyla yıkılabilir.',
   trap: 'Seçili şeride kurulur; üstünden geçen ilk üç düşmana 30 hasar verir.',
@@ -1221,18 +1247,22 @@ const ACTS = [
   { tab: 1, c: 'arch', lane: 1, label: 'Okçu', cost: () => 50, off: p => p.ar[selLane], text: p => (p.ar[selLane] ? 'Kurulu' : null) },
   { tab: 1, c: 'trap', lane: 1, label: 'Tuzak', cost: () => 35, off: p => p.tr[selLane] >= 3, text: p => (p.tr[selLane] >= 3 ? 'Kurulu' : null) },
   { tab: 1, c: 'cat', label: 'Mancınık', cost: () => 90, off: p => p.c, text: p => (p.c ? 'Kurulu' : null) },
+  { tab: 2, c: 'ug', i: 0, label: 'Piyade', cost: p => (p.ug[0] >= 3 ? 0 : UGC[p.ug[0]]), off: p => p.ug[0] >= 3, text: p => (p.ug[0] >= 3 ? 'En üst' : null) },
+  { tab: 2, c: 'ug', i: 1, label: 'Nişancı', cost: p => (p.ug[1] >= 3 ? 0 : UGC[p.ug[1]]), off: p => p.ug[1] >= 3, text: p => (p.ug[1] >= 3 ? 'En üst' : null) },
+  { tab: 2, c: 'ug', i: 2, label: 'Süvari', cost: p => (p.ug[2] >= 3 ? 0 : UGC[p.ug[2]]), off: p => p.ug[2] >= 3, text: p => (p.ug[2] >= 3 ? 'En üst' : null) },
+  { tab: 2, c: 'ug', i: 3, label: 'Kuşatma', cost: p => (p.ug[3] >= 3 ? 0 : UGC[p.ug[3]]), off: p => p.ug[3] >= 3, text: p => (p.ug[3] >= 3 ? 'En üst' : null) },
   { tab: 1, c: 'tre', label: 'Tribüşe', cost: () => 120, off: p => p.tb || p.l < 2, text: p => (p.tb ? 'Kurulu' : p.l < 2 ? 'Kd 2' : null) },
 ];
 {
   const tg = document.createElement('button'); tg.type = 'button'; tg.className = 'act panel'; tg.id = 'a-tab';
-  tg.addEventListener('click', () => { actTab = 1 - actTab; hud(); });
+  tg.addEventListener('click', () => { actTab = (actTab + 1) % 3; hud(); });
   $('acts').append(tg);
 }
 for (const A of ACTS) {
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'act panel'; b.id = 'a-' + A.c;
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'act panel'; b.id = 'a-' + A.c + (A.i === undefined ? '' : A.i);
   const n = document.createElement('span'); n.textContent = A.label; const sm = document.createElement('small'); b.append(n, sm);
-  holdTip(b, () => '<b>' + A.label + '</b><br>' + ADESC[A.c]);
-  b.addEventListener('click', () => { audioInit(); if (tipHeld || !V || V.ph !== 'play' || !canPlay) return; send(A.lane ? { c: A.c, l: selLane } : { c: A.c }); });
+  holdTip(b, () => '<b>' + A.label + '</b><br>' + (A.c === 'ug' ? ['Muhafız ve Zırhlı', 'Nişancı', 'Süvari', 'Koçbaşı ve Demir Dev'][A.i] + ' birliklerinin canını ve hasarını kalıcı olarak %20 artırır. En çok 3 kez alınır, sahadaki askerlere de işler.' : ADESC[A.c]));
+  b.addEventListener('click', () => { audioInit(); if (tipHeld || !V || V.ph !== 'play' || !canPlay) return; send(A.lane ? { c: A.c, l: selLane } : A.c === 'ug' ? { c: 'ug', i: A.i } : { c: A.c }); });
   $('acts').append(b);
 }
 function hud() {
@@ -1252,12 +1282,12 @@ function hud() {
     b.classList.toggle('off', !play || locked || p.g < d.cost);
     b.lastChild.textContent = locked && p ? 'Kd ' + d.lvl : d.cost;
   }
-  $('a-tab').textContent = actTab ? '‹ Komuta' : 'İnşa ›';
+  $('a-tab').textContent = ['İnşa ›', 'Geliştir ›', 'Komuta ›'][actTab];
   for (const A of ACTS) {
-    const b = $('a-' + A.c); b.hidden = A.tab !== actTab;
+    const b = $('a-' + A.c + (A.i === undefined ? '' : A.i)); b.hidden = A.tab !== actTab;
     const cost = p ? A.cost(p) : 0, cd = p && A.cd ? A.cd(p) : 0, off = !play || (A.off && A.off(p)) || p.g < cost || cd > 0;
     b.classList.toggle('off', !!off);
-    b.lastChild.textContent = !p ? '' : cd > 0 ? Math.ceil(cd) + ' sn' : (A.text && A.text(p)) || cost;
+    b.lastChild.textContent = !p ? '' : cd > 0 ? Math.ceil(cd) + ' sn' : A.c === 'ug' ? (p.ug[A.i] >= 3 ? 'En üst' : cost + ' · ' + p.ug[A.i] + '/3') : (A.text && A.text(p)) || cost;
   }
   let txt;
   if (!ready) txt = 'Yükleniyor…';
@@ -1270,19 +1300,27 @@ function hud() {
   if (modalKind === 'lobby') lobbyRefresh();
 }
 function ptrWorld(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left - ox) / sc, (e.clientY - r.top - oy) / sc]; }
-const ptr = { id: null, sy: 0, c0: 0, moved: false, vel: 0, lt: 0, ly: 0 };
+const ptr = { id: null, sy: 0, c0: 0, moved: false, vel: 0, lt: 0, ly: 0 }, pts = new Map();
+let pinch = null;
+const pinchDist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; };
 cv.addEventListener('pointerdown', e => {
-  audioInit(); ptr.id = e.pointerId; ptr.sy = ptr.ly = e.clientY; ptr.c0 = camY; ptr.moved = false; ptr.vel = 0; ptr.lt = performance.now();
+  audioInit(); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
   try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+  if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: pinchDist(), s0: sc, my: (a.y + b.y) / 2 - cv.getBoundingClientRect().top }; ptr.moved = true; ptr.vel = 0; return; }
+  ptr.id = e.pointerId; ptr.sy = ptr.ly = e.clientY; ptr.c0 = camY; ptr.moved = false; ptr.vel = 0; ptr.lt = performance.now();
 });
 cv.addEventListener('pointermove', e => {
+  if (pts.has(e.pointerId)) pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinch && pts.size === 2) { setZoom(pinch.s0 * pinchDist() / pinch.d, pinch.my); return; } // iki parmakla yakınlaştır
   if (ptr.id !== e.pointerId) return;
   const dy = e.clientY - ptr.sy, now = performance.now();
   if (!ptr.moved && Math.abs(dy) > 8) ptr.moved = true;
   if (ptr.moved) { setCam(ptr.c0 - dy / sc); if (now > ptr.lt) ptr.vel = -(e.clientY - ptr.ly) / sc / (now - ptr.lt) * 1000; ptr.lt = now; ptr.ly = e.clientY; }
 });
-cv.addEventListener('pointercancel', () => { ptr.id = null; });
+cv.addEventListener('pointercancel', e => { pts.delete(e.pointerId); pinch = null; ptr.id = null; });
 cv.addEventListener('pointerup', e => {
+  pts.delete(e.pointerId);
+  if (pinch) { pinch = null; ptr.id = null; return; }
   if (ptr.id !== e.pointerId) return; ptr.id = null;
   if (ptr.moved) return;
   ptr.vel = 0;
@@ -1327,7 +1365,7 @@ function startCard() {
 function lobbyCard() {
   showModal('lobby',
     '<h2>Savaş hazırlığı</h2>' +
-    '<ul><li>Haritayı parmağınla yukarı aşağı kaydır; sağdaki küçük haritaya dokunarak da gidebilirsin.</li><li>Avluna dokunup şerit seç, alttan birlik gönder. Karta basılı tutunca bilgisi çıkar.</li><li>Karşı tarafa dokununca kralın domates bombası atar.</li><li>Onar, kalkan aç, kaleyi yükselt. "İnşa" sekmesinden okçu kulesi, tuzak, mancınık, tribüşe kur.</li><li>Nara: 6 saniye bütün ordun hızlanır.</li><li>Ana kalesi yıkılan kaybeder. Süre 6 dakika; dolarsa kalesi daha sağlam olan kazanır.</li></ul>' +
+    '<ul><li>Oyun bütün haritayı görecek şekilde açılır. Sağ üstteki + ve − ile ya da iki parmakla yakınlaştır; yakınken parmağınla kaydır.</li><li>Avluna dokunup şerit seç, alttan birlik gönder. Karta basılı tutunca bilgisi çıkar.</li><li>Karşı tarafa dokununca kralın domates bombası atar.</li><li>Alt satırdaki sarı düğme sekme değiştirir: Komuta, İnşa, Geliştir. Onar, kalkan aç, kaleyi yükselt. "İnşa" sekmesinden okçu kulesi, tuzak, mancınık, tribüşe kur.</li><li>Nara: 6 saniye bütün ordun hızlanır.</li><li>Ana kalesi yıkılan kaybeder. Süre 6 dakika; dolarsa kalesi daha sağlam olan kazanır.</li></ul>' +
     '<p class="note" id="lobSt"></p>' + shareHtml() +
     '<div class="row"><button class="btn primary" type="button" data-act="ready" id="lobReady">Hazırım</button><button class="btn" type="button" data-act="bot">Bota karşı oyna</button></div>');
   lobbyRefresh();
@@ -1409,6 +1447,8 @@ modalEl.addEventListener('click', e => {
   else if (a === 'solo') { if (!ready) { bootAbort = true; if (net) net.close(); goOffline('Çevrimiçi oda için sayfayı yenile.'); finishBoot(); } }
 });
 $('menuBtn').addEventListener('click', menuCard);
+$('zIn').addEventListener('click', () => setZoom(sc * 1.4, viewTop + viewH / 2));
+$('zOut').addEventListener('click', () => setZoom(sc / 1.4, viewTop + viewH / 2));
 for (const em of EMOJI) { const b = document.createElement('button'); b.type = 'button'; b.textContent = em; b.addEventListener('click', () => { chatSend(em); $('chat').hidden = true; }); $('emo').append(b); }
 $('chatBtn').addEventListener('click', () => { if (!started) return; $('chat').hidden = !$('chat').hidden; });
 $('chatClose').addEventListener('click', () => { $('chat').hidden = true; });

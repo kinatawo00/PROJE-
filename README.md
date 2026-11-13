@@ -5,7 +5,7 @@ Telefondan oynanan, izometrik görünümlü, iki kişilik çevrimiçi kale kuşa
 ## Oyun
 
 - Her oyuncunun bir kalesi var: ana kale, sur ve iki kule. Kral (karakter kartlarındaki karakter) ana kalenin tepesinde durur.
-- Harita ekran genişliğine yayılır; parmakla yukarı aşağı kaydırılır, sağdaki küçük haritaya dokunarak da gidilir.
+- Oyun bütün haritayı gösterecek şekilde açılır. + / − düğmeleriyle ya da iki parmakla yakınlaştırılır; yakınken parmakla kaydırılır, küçük haritaya dokunarak da gidilir.
 - Birlik kartına ya da düğmeye basılı tutunca bilgisi çıkar.
 - Üç şerit var. Avluna dokunup şerit seçer, alttaki kartlardan birlik gönderirsin:
   Muhafız, Nişancı, Süvari, Zırhlı, Koçbaşı (yalnızca yapılara vurur), Demir Dev.
@@ -13,6 +13,9 @@ Telefondan oynanan, izometrik görünümlü, iki kişilik çevrimiçi kale kuşa
 - Altınla: onarım, kalkan, kale yükseltme. "İnşa" sekmesinde: okçu kulesi (şeridini korur), diken tuzağı,
   mancınık (kendi yarına giren düşmana taş atar), tribüşe (karşı kalenin yapılarını döver). Kurulanlar domates bombasıyla yıkılabilir.
 - Nara: 6 saniye bütün ordu hızlanır (30 saniyede bir).
+- "Geliştir" sekmesi: Piyade, Nişancı, Süvari ve Kuşatma sınıflarının canı ve hasarı altınla kalıcı olarak %20 artırılır (en çok 3 kez).
+- Kaleye yığılan askerlerin arka sıraları da vurur; Nişancı önündeki üç sıranın üstünden ateş eder.
+- Kale kademesi geliri 2. kademede %10, 3. kademede %20 artırır (tam sayıya yuvarlanır).
 - Ana kalesi yıkılan kaybeder. Maç 6 dakikadır; süre dolarsa kalesi daha sağlam olan kazanır.
   2:30'dan sonra yapılara verilen hasar giderek artar, gelir de zamanla yükselir.
 - Maçlar puan kazandırır; seviye atladıkça rütbe yükselir, yeni sancak amblemleri ve taçlar açılır.
