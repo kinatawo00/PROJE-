@@ -8,7 +8,8 @@ Telefondan oynanan, izometrik görünümlü, iki kişilik çevrimiçi kale kuşa
 - Üç şerit var. Avluna dokunup şerit seçer, alttaki kartlardan birlik gönderirsin:
   Muhafız, Nişancı, Süvari, Zırhlı, Koçbaşı (yalnızca yapılara vurur), Demir Dev.
 - Karşı tarafa dokununca kral domates bombası atar.
-- Altınla: onarım, kalkan, kale yükseltme, mancınık (kendi yarına giren düşmana taş atar), şeride diken tuzağı.
+- Altınla: onarım, kalkan, kale yükseltme. "İnşa" sekmesinde: okçu kulesi (şeridini korur), diken tuzağı,
+  mancınık (kendi yarına giren düşmana taş atar), tribüşe (karşı kalenin yapılarını döver). Kurulanlar domates bombasıyla yıkılabilir.
 - Nara: 6 saniye bütün ordu hızlanır (30 saniyede bir).
 - Ana kalesi yıkılan kaybeder. Maç 6 dakikadır; süre dolarsa kalesi daha sağlam olan kazanır.
   2:30'dan sonra yapılara verilen hasar giderek artar, gelir de zamanla yükselir.
