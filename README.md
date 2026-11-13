@@ -5,6 +5,8 @@ Telefondan oynanan, izometrik görünümlü, iki kişilik çevrimiçi kale kuşa
 ## Oyun
 
 - Her oyuncunun bir kalesi var: ana kale, sur ve iki kule. Kral (karakter kartlarındaki karakter) ana kalenin tepesinde durur.
+- Harita ekran genişliğine yayılır; parmakla yukarı aşağı kaydırılır, sağdaki küçük haritaya dokunarak da gidilir.
+- Birlik kartına ya da düğmeye basılı tutunca bilgisi çıkar.
 - Üç şerit var. Avluna dokunup şerit seçer, alttaki kartlardan birlik gönderirsin:
   Muhafız, Nişancı, Süvari, Zırhlı, Koçbaşı (yalnızca yapılara vurur), Demir Dev.
 - Karşı tarafa dokununca kral domates bombası atar.

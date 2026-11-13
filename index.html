@@ -73,6 +73,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 #units { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 #acts { grid-template-columns: 62px repeat(4, minmax(0, 1fr)); }
 #a-tab { justify-content: center; color: var(--sun); }
+button { touch-action: manipulation; -webkit-touch-callout: none; }
 .ucard { padding: 3px 2px 4px; display: flex; flex-direction: column; align-items: center; min-width: 0; position: relative; }
 .ucard canvas { width: 34px; height: 34px; }
 .ucard .nm { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -88,6 +89,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 .xp { height: 8px; border-radius: 4px; background: #d9c898; overflow: hidden; }
 .xp i { display: block; height: 100%; background: var(--blood); }
 
+#tip { position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 4; padding: 8px 10px; font-size: 13px; line-height: 1.35; pointer-events: none; }
+#tip b { font-family: var(--display); font-size: 16px; color: var(--sun); }
 #log { position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); z-index: 2; bottom: 200px; display: flex; flex-direction: column; gap: 3px; pointer-events: none; max-width: 70%; }
 #log div { background: rgba(20, 18, 26, .8); border-radius: 8px; padding: 2px 8px; font-size: 13px; width: max-content; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: fade 7s forwards; }
 @keyframes fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
@@ -130,6 +133,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
   </header>
   <div id="banner">Yükleniyor…</div>
   <div id="toast" hidden></div>
+  <div id="tip" class="panel" hidden></div>
   <div id="log"></div>
   <footer id="bottom" class="bar">
     <div id="res" class="panel"><span id="gold">0</span><span id="inc"></span><span id="clock"></span><span id="kd">Kalen</span><div class="hp" id="myHp"><i></i></div></div>
@@ -151,10 +155,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 
 /* ---------- Sabitler ---------- */
 const W = 100, H = 214, YD = H / 2 - 44, TAU = Math.PI * 2, INK = '#1b1714';
-const LX = [22, 50, 78], TWX = [36, 64];
+const LX = [18, 50, 82], TWX = [34, 66], PADT = 40, PADB = 6, GY0 = -PADT - 24, GY1 = H + PADB + 80;
 const WALL_Y = { A: 177, B: 37 }, KEEP_Y = { A: 196, B: 18 }, SPAWN_Y = { A: 173, B: 41 };
 const UNITS = {
-  m: { name: 'Muhafız',   hp: 60,  dmg: 8,  rate: 0.8, range: 5,  sp: 10,  cost: 20,  lvl: 1 },
+  m: { name: 'Muhafız',   hp: 75,  dmg: 8,  rate: 0.8, range: 5,  sp: 10,  cost: 20,  lvl: 1 },
   n: { name: 'Nişancı',   hp: 30,  dmg: 6,  rate: 0.9, range: 16, sp: 9,   cost: 30,  lvl: 1 },
   z: { name: 'Zırhlı',    hp: 260, dmg: 16, rate: 1.2, range: 6,  sp: 6,   cost: 70,  lvl: 2 },
   d: { name: 'Demir Dev', hp: 380, dmg: 40, rate: 2.0, range: 12, sp: 4.5, cost: 180, lvl: 3, siege: 2 },
@@ -162,7 +166,7 @@ const UNITS = {
   k: { name: 'Koçbaşı',   hp: 260, dmg: 60, rate: 2.2, range: 5,  sp: 5.5, cost: 80,  lvl: 2, ram: true },
 };
 const ORDER = ['m', 'n', 's', 'z', 'k', 'd'], UPC = [0, 120, 260], INCOME = [0, 5, 7, 9], MAXU = 14;
-const TRAP_Y = { A: WALL_Y.A - 24, B: WALL_Y.B + 24 }, CAT = { A: [22, WALL_Y.A + 10], B: [78, WALL_Y.B - 10] }, TRE = { A: [78, WALL_Y.A + 10], B: [22, WALL_Y.B - 10] };
+const TRAP_Y = { A: WALL_Y.A - 24, B: WALL_Y.B + 24 }, CAT = { A: [14, WALL_Y.A + 10], B: [86, WALL_Y.B - 10] }, TRE = { A: [86, WALL_Y.A + 10], B: [14, WALL_Y.B - 10] };
 const AR_Y = { A: WALL_Y.A - 36, B: WALL_Y.B + 36 }, arX = (s, l) => LX[l] + (s === 'A' ? 7 : -7);
 const RANKS = ['Acemi', 'Er', 'Çavuş', 'Yüzbaşı', 'Komutan', 'Lord', 'Kral', 'İmparator'];
 const EMB = [{ n: 'Domates', lv: 1 }, { n: 'Yıldız', lv: 2 }, { n: 'Kılıç', lv: 3 }, { n: 'Kurukafa', lv: 5 }, { n: 'Taç', lv: 7 }];
@@ -176,9 +180,9 @@ const EMOJI = ['😀', '😂', '😡', '😭', '👍', '🍅', '💀', '👑'];
 const other = s => (s === 'A' ? 'B' : 'A');
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-const MATCH_T = 360, ESC_T = 150, incomeOf = (l, t) => INCOME[l] + Math.min(6, Math.floor(t / 45)), escOf = t => 1 + Math.max(0, (t - ESC_T) / 60);
+const MATCH_T = 360, ESC_T = 90, incomeOf = (l, t) => INCOME[l] + Math.min(6, Math.floor(t / 45)), escOf = t => 1 + Math.max(0, (t - ESC_T) / 60);
 const mult = l => 1 + 0.4 * (l - 1);
-const MAXHP = l => ({ keep: 1000 * mult(l), wall: 500 * mult(l), tw: 300 * mult(l) });
+const MAXHP = l => ({ keep: 800 * mult(l), wall: 350 * mult(l), tw: 220 * mult(l) });
 const $ = id => document.getElementById(id);
 const LS = 'domates-savasi-v3';
 
@@ -200,7 +204,7 @@ const rankOf = p => RANKS[Math.min(RANKS.length - 1, lvlOf(p) - 1)];
 const lvlOf = p => 1 + Math.floor(Math.sqrt(((p && p.xp) || 0) / 60));
 
 /* ---------- Simülasyon (oda sahibinde ya da bot maçında çalışır) ---------- */
-const newSide = () => ({ gold: 60, lvl: 1, keep: 1000, wall: 500, tw: [300, 300], tc: [0, 0], sh: 0, cb: 0, cs: 0, cr: 0, dmg: 0, cat: 0, cc: 3, tre: 0, tcd: 4, ar: [0, 0, 0], ac: [0, 0, 0], tr: [0, 0, 0], wc: 0, cw: 0 });
+const newSide = () => ({ gold: 80, lvl: 1, keep: 800, wall: 350, tw: [220, 220], tc: [0, 0], sh: 0, cb: 0, cs: 0, cr: 0, dmg: 0, cat: 0, cc: 3, tre: 0, tcd: 4, ar: [0, 0, 0], ac: [0, 0, 0], tr: [0, 0, 0], wc: 0, cw: 0 });
 const newSim = () => ({ t: 0, ph: 'lobby', cd: 0, win: null, bot: null, rdy: { A: false, B: false }, P: { A: newSide(), B: newSide() }, U: [], Bm: [], fx: [], nid: 1, bt: 1.5 });
 function fx(...a) { a.unshift(FID++); S.fx.push({ a, at: performance.now() }); }
 function structFor(e, lane) {
@@ -231,16 +235,16 @@ function applyCmd(side, c) {
     p.gold -= d.cost; S.U.push({ id: S.nid++, o: side, k: c.k, l, y: SPAWN_Y[side], hp: d.hp, cd: 0.3 });
   } else if (c.c === 'bomb') {
     if (S.t < p.cb) return;
-    p.cb = S.t + 4; S.Bm.push({ o: side, x: clamp(+c.x || 50, 4, 96), y: clamp(+c.y || H / 2, 4, H - 4), at: S.t + 0.9 }); fx('thr', side);
+    p.cb = S.t + 6; S.Bm.push({ o: side, x: clamp(+c.x || 50, 4, 96), y: clamp(+c.y || H / 2, 4, H - 4), at: S.t + 0.9 }); fx('thr', side);
   } else if (c.c === 'shield') {
     if (p.gold < 60 || S.t < p.cs) return;
-    p.gold -= 60; p.sh = S.t + 6; p.cs = S.t + 25; fx('shd', side);
+    p.gold -= 60; p.sh = S.t + 5; p.cs = S.t + 35; fx('shd', side);
   } else if (c.c === 'repair') {
     if (p.gold < 40 || S.t < p.cr) return;
     const mh = MAXHP(p.lvl), cand = [['keep', p.keep / mh.keep], ['wall', p.wall / mh.wall], [0, p.tw[0] / mh.tw], [1, p.tw[1] / mh.tw]].sort((a, b) => a[1] - b[1])[0];
     if (cand[1] >= 1) return;
     p.gold -= 40; p.cr = S.t + 3;
-    const add = 150 * mult(p.lvl), st = cand[0];
+    const add = 110 * mult(p.lvl), st = cand[0];
     if (st === 'keep') p.keep = Math.min(mh.keep, p.keep + add); else if (st === 'wall') p.wall = Math.min(mh.wall, p.wall + add); else p.tw[st] = Math.min(mh.tw, p.tw[st] + add);
     const [x, y] = structPos(side, st, 1); fx('rep', x, y);
   } else if (c.c === 'cat') {
@@ -279,7 +283,7 @@ function stepSim(dt) {
   for (const u of S.U) {
     const d = UNITS[u.k], dir = u.o === 'A' ? -1 : 1, e = other(u.o), ux = LX[u.l], pe = S.P[e], buff = S.P[u.o].wc > S.t ? 1.5 : 1;
     u.cd -= dt * buff;
-    if (pe.tr[u.l] > 0 && !u.tp && Math.abs(u.y - TRAP_Y[e]) < 2) { u.tp = 1; u.hp -= 45; if (u.hp <= 0) u.kb = e; pe.tr[u.l]--; fx('trap', ux, TRAP_Y[e]); }
+    if (pe.tr[u.l] > 0 && !u.tp && Math.abs(u.y - TRAP_Y[e]) < 2) { u.tp = 1; u.hp -= 30; if (u.hp <= 0) u.kb = e; pe.tr[u.l]--; fx('trap', ux, TRAP_Y[e]); }
     let tgt = null, best = 1e9;
     if (!d.ram) for (const v of S.U) if (v.o !== u.o && v.l === u.l && v.hp > 0) { const dd = Math.abs(v.y - u.y); if (dd <= d.range + 1 && dd < best) { best = dd; tgt = v; } }
     if (tgt) {
@@ -298,7 +302,7 @@ function stepSim(dt) {
       p.tc[i] -= dt; if (p.tc[i] > 0) continue;
       let tg = null, b = 24 + 3 * p.lvl;
       for (const v of S.U) if (v.o !== s && v.hp > 0 && (v.l === 1 || v.l === (i ? 2 : 0))) { const dd = Math.hypot(LX[v.l] - TWX[i], v.y - WALL_Y[s]); if (dd < b) { b = dd; tg = v; } }
-      if (tg) { p.tc[i] = 1; tg.hp -= 6 * (1 + 0.35 * (p.lvl - 1)); if (tg.hp <= 0) tg.kb = s; fx('sh', TWX[i], WALL_Y[s], LX[tg.l], tg.y, s, 0); }
+      if (tg) { p.tc[i] = 1.1; tg.hp -= 5 * (1 + 0.35 * (p.lvl - 1)); if (tg.hp <= 0) tg.kb = s; fx('sh', TWX[i], WALL_Y[s], LX[tg.l], tg.y, s, 0); }
     }
   }
   for (const s of ['A', 'B']) { // kurulan savunmalar
@@ -308,14 +312,14 @@ function stepSim(dt) {
       p.ac[l] -= dt; if (p.ac[l] > 0) continue;
       let tg = null, b = 20;
       for (const v of S.U) if (v.o !== s && v.hp > 0 && v.l === l) { const dd = Math.abs(v.y - AR_Y[s]); if (dd < b) { b = dd; tg = v; } }
-      if (tg) { p.ac[l] = 0.6; tg.hp -= 5 * m; if (tg.hp <= 0) tg.kb = s; fx('sh', arX(s, l), AR_Y[s], LX[l], tg.y, s, 0, 11); }
+      if (tg) { p.ac[l] = 0.9; tg.hp -= 4 * m; if (tg.hp <= 0) tg.kb = s; fx('sh', arX(s, l), AR_Y[s], LX[l], tg.y, s, 0, 11); }
     }
     if (p.cat > 0) { // mancınık: kendi yarısına giren düşmana taş atar
       p.cc -= dt;
       if (p.cc <= 0) {
         let tg = null, b = 1e9;
         for (const v of S.U) if (v.o !== s && v.hp > 0 && Math.abs(v.y - KEEP_Y[s]) < H / 2 - 22) { const dd = Math.abs(v.y - WALL_Y[s]); if (dd < b) { b = dd; tg = v; } }
-        if (tg) { p.cc = 5; S.Bm.push({ o: s, x: LX[tg.l], y: tg.y + (s === 'A' ? 1 : -1) * UNITS[tg.k].sp * 0.6, at: S.t + 1, r: 1 }); fx('cat', s); }
+        if (tg) { p.cc = 7; S.Bm.push({ o: s, x: LX[tg.l], y: tg.y + (s === 'A' ? 1 : -1) * UNITS[tg.k].sp * 0.6, at: S.t + 1, r: 1 }); fx('cat', s); }
       }
     }
     if (p.tre > 0) { // tribüşe: karşı kalenin yapılarını döver
@@ -330,7 +334,7 @@ function stepSim(dt) {
     const b = S.Bm[i]; if (S.t < b.at) continue;
     S.Bm.splice(i, 1);
     const e = other(b.o), m = 1 + 0.25 * (S.P[b.o].lvl - 1);
-    if (b.r !== 2) for (const v of S.U) if (v.o === e && Math.hypot(LX[v.l] - b.x, v.y - b.y) < (b.r ? 8 : 9)) { v.hp -= (b.r ? 35 : 40) * m; if (v.hp <= 0) v.kb = b.o; }
+    if (b.r !== 2) for (const v of S.U) if (v.o === e && Math.hypot(LX[v.l] - b.x, v.y - b.y) < (b.r ? 8 : 9)) { v.hp -= (b.r ? 22 : 28) * m; if (v.hp <= 0) v.kb = b.o; }
     if (b.r === 2) hurtStruct(e, b.st, 30 * m, b.o);
     if (!b.r) {
       const pe = S.P[e], hitB = (x, y) => Math.hypot(x - b.x, y - b.y) < 8; // kurulan savunmalar bombayla yıkılabilir
@@ -345,7 +349,7 @@ function stepSim(dt) {
   for (let i = S.U.length - 1; i >= 0; i--) {
     const u = S.U[i]; if (u.hp > 0) continue;
     S.U.splice(i, 1); fx('die', LX[u.l], u.y, u.o);
-    if (u.kb) S.P[u.kb].gold += UNITS[u.k].cost * 0.3;
+    if (u.kb) S.P[u.kb].gold += UNITS[u.k].cost * 0.4;
   }
 }
 function botThink(dt) {
@@ -388,14 +392,20 @@ const cv = $('cv'), ctx = cv.getContext('2d'), bannerEl = $('banner');
 let cw = 0, ch = 0, dpr = 1, sc = 1, ox = 0, oy = 0, ground = null;
 const flip = () => me === 'B';
 const vx = x => (flip() ? W - x : x), vy = y => (flip() ? H - y : y);
+let camY = 0, camMin = 0, camMax = 0, viewTop = 0, viewH = 0, camInit = false;
+function setCam(y) { camY = clamp(y, camMin, camMax); oy = viewTop - camY * sc; }
 function resize() {
   const r = cv.getBoundingClientRect();
   cw = r.width; ch = r.height; dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
-  const topH = $('top').offsetHeight + 4, botH = $('bottom').offsetHeight + 30, PADT = 38, PADB = -6;
-  sc = Math.max(0.5, Math.min(cw / W, (ch - topH - botH) / (H + PADT + PADB)));
-  ox = (cw - W * sc) / 2; oy = topH + PADT * sc + (ch - topH - botH - (H + PADT + PADB) * sc) / 2;
-  bannerEl.style.bottom = (botH - 24) + 'px'; $('log').style.bottom = (botH + 6) + 'px';
+  const topH = $('top').offsetHeight + 4, botH = $('bottom').offsetHeight + 30;
+  viewTop = topH; viewH = ch - topH - botH;
+  sc = Math.max(0.5, Math.min(cw / W, viewH / 95)); // harita ekran genişliğine yayılır, dikeyde kaydırılır
+  ox = (cw - W * sc) / 2;
+  camMin = -PADT; camMax = H + PADB - viewH / sc;
+  if (camMax < camMin) camMin = camMax = (camMin + camMax) / 2;
+  setCam(camInit ? camY : camMax); camInit = true;
+  bannerEl.style.bottom = (botH - 24) + 'px'; $('log').style.bottom = (botH + 6) + 'px'; $('tip').style.bottom = (botH - 26) + 'px';
   buildGround();
 }
 function rr(x, y, w, h, r, g) {
@@ -465,7 +475,7 @@ function terr(x, y) {
   if (dr < 4.6) return lane ? { t: 'bridge', lev: 0 } : { t: 'water', lev: -1 };
   if (inF && dyc > YD) return lane && dyc <= YD + 4 ? { t: 'stair', lev: 0.5 } : { t: 'yard', lev: 1 };
   if (lane) return { t: 'dirt', lev: 0 };
-  if (!inF || x < 4 || x > 96) { const n = noise2(x / 20 + 9, y / 15 + 3), sand = x > 50; return n > 0.6 ? { t: sand ? 'sand' : 'rock', lev: 2 } : n > 0.42 ? { t: sand ? 'sand' : 'grass', lev: 1 } : { t: 'grass', lev: 0 }; }
+  if (!inF) { const n = noise2(x / 20 + 9, y / 15 + 3), sand = x > 50; return n > 0.6 ? { t: sand ? 'sand' : 'rock', lev: 2 } : n > 0.42 ? { t: sand ? 'sand' : 'grass', lev: 1 } : { t: 'grass', lev: 0 }; }
   if (dr < 6.4) return { t: 'bank', lev: 0 };
   if (dyc < YD - 3 && noise2(x / 11 + 40, y / 11 + 7) > 0.74) return { t: 'dirt', lev: 0 };
   return { t: 'grass', lev: 0 };
@@ -517,7 +527,7 @@ function drawTile(g, x, y, c, r, decor) {
   g.strokeStyle = 'rgba(0,0,0,.09)'; g.lineWidth = 0.12; g.beginPath(); g.moveTo(D[3][0], D[3][1]); g.lineTo(D[2][0], D[2][1]); g.lineTo(D[1][0], D[1][1]); g.stroke();
   if (terr(x - a, y - b).lev > T.lev || terr(x - TW, y - TH).lev > T.lev + 0.9) poly(g, D, 'rgba(12,10,40,.27)');
   // süslemeler
-  const laneD = Math.min(...LX.map(l => Math.abs(l - x))), field = x > 6 && x < 94;
+  const laneD = Math.min(...LX.map(l => Math.abs(l - x))), field = x > -3 && x < 103;
   if (T.t === 'grass' || T.t === 'rock' || T.t === 'sand') {
     const grove = noise2(x / 12 + 70, y / 12 + 70) > 0.66;
     if (T.t === 'sand') { if (n < 0.05) decor.push({ k: 'boulder', x, y: ty, s: 0.8 + n2, c: '#c79a62' }); }
@@ -575,11 +585,11 @@ function drawDecor(g, d) {
 }
 function buildGround() {
   PXR = Math.max(1, Math.round(dpr * 0.7)); AS = sc * dpr / PXR; cache.clear();
-  ground = document.createElement('canvas'); ground.width = Math.ceil(cv.width / PXR); ground.height = Math.ceil(cv.height / PXR);
+  ground = document.createElement('canvas'); ground.width = Math.ceil(cv.width / PXR); ground.height = Math.ceil((GY1 - GY0) * AS);
   const g = ground.getContext('2d'), decor = []; LIGHTS = [];
   g.fillStyle = '#3f7f30'; g.fillRect(0, 0, ground.width, ground.height);
-  g.setTransform(AS, 0, 0, AS, ox * dpr / PXR, oy * dpr / PXR);
-  const b = TH / 2, x0 = -ox / sc - TW, x1 = (cw - ox) / sc + TW, y0 = -oy / sc - TH * 3, y1 = (ch - oy) / sc + TH * 3;
+  g.setTransform(AS, 0, 0, AS, ox * dpr / PXR, -GY0 * AS);
+  const b = TH / 2, x0 = -ox / sc - TW, x1 = (cw - ox) / sc + TW, y0 = GY0 - TH, y1 = GY1 + TH * 3;
   for (let r = Math.floor(y0 / b); r * b < y1; r++) for (let c = Math.floor(x0 / TW); c * TW < x1; c++) drawTile(g, c * TW + (r & 1) * TW / 2, r * b, c, r, decor);
   for (const l of LX) for (const s of [-1, 1]) decor.push({ k: 'parapet', x: l + s * 4.6, y: riverY(l) + 6, y0: riverY(l) - 5.5, y1: riverY(l) + 6.5 });
   for (const [i, s, yy] of [[0, -1, H / 2 - 20], [1, 1, H / 2 - 34], [2, 1, H / 2 - 20], [0, -1, H / 2 + 20], [1, -1, H / 2 + 34], [2, 1, H / 2 + 20]]) { decor.push({ k: 'lamp', x: LX[i] + s * 6.5, y: yy }); LIGHTS.push({ x: LX[i] + s * 6.5, y: yy - 9, c: '#ffb347', r: 9 }); }
@@ -647,7 +657,7 @@ function rubble(g, x, y) { isoBox(g, x, y, 4.2, 1.6, RUIN.top, RUIN.left, RUIN.r
 function cracks(g, cx, cy, a, h) { g.strokeStyle = 'rgba(15,8,20,.8)'; g.lineWidth = 0.35; g.lineJoin = 'miter'; g.beginPath(); g.moveTo(cx - a * 0.8, cy - h * 0.9); g.lineTo(cx - a * 0.62, cy - h * 0.55); g.lineTo(cx - a * 0.74, cy - h * 0.3); g.lineTo(cx - a * 0.55, cy + a * 0.1); g.moveTo(cx + a * 0.5, cy - h * 0.75); g.lineTo(cx + a * 0.6, cy - h * 0.4); g.lineTo(cx + a * 0.45, cy - h * 0.1); g.stroke(); }
 function wallSprite(g, side, y, st) {
   const t = TEAM[side], B = BRICK[side], B2 = lighter(B);
-  for (let x = 1; x <= 99; x += 7) {
+  for (let x = 2; x <= 98; x += 8) {
     const ti = TWX.indexOf(flip() ? W - x : x);
     if (ti >= 0) {
       if (!st.t[ti]) { rubble(g, x, y); continue; }
@@ -661,10 +671,10 @@ function wallSprite(g, side, y, st) {
     }
     if (!st.alive) { rubble(g, x, y); continue; }
     const gate = LX.includes(x), h = 8 + 2 * st.l - st.dm * 1.3;
-    stoneBox(g, x, y, 4.7, h, B, { merlons: st.dm < 2 });
+    stoneBox(g, x, y, 5.3, h, B, { merlons: st.dm < 2 });
     if (gate) { gateArch(g, x, y + 2.35, 2.5, 5.2); for (const s of [-1, 1]) { g.fillStyle = '#2b2630'; g.fillRect(x + s * 3.5 - 0.2, y + 0.6 - h * 0.62, 0.4, 1.6); g.fillStyle = '#ffb347'; g.fillRect(x + s * 3.5 - 0.4, y - 0.2 - h * 0.62, 0.8, 0.9); } }
-    else if (((x - 1) / 7) % 2 === 0) { const bx = x + 2.3, by = y + 1.2 - h * 0.86; poly(g, [[bx - 1, by + 0.5], [bx + 1, by - 0.5], [bx + 1, by + h * 0.5], [bx, by + h * 0.5 + 0.2], [bx - 1, by + h * 0.5 + 1]], t.main, INK, 0.22); g.fillStyle = '#ffd65a'; g.fillRect(bx - 0.35, by + h * 0.2, 0.7, 0.7); }
-    if (st.dm) cracks(g, x, y, 4.7, h);
+    else if (((x - 2) / 8) % 2 === 0) { const bx = x + 2.3, by = y + 1.2 - h * 0.86; poly(g, [[bx - 1, by + 0.5], [bx + 1, by - 0.5], [bx + 1, by + h * 0.5], [bx, by + h * 0.5 + 0.2], [bx - 1, by + h * 0.5 + 1]], t.main, INK, 0.22); g.fillStyle = '#ffd65a'; g.fillRect(bx - 0.35, by + h * 0.2, 0.7, 0.7); }
+    if (st.dm) cracks(g, x, y, 5.3, h);
   }
 }
 function emblem(g, x, y, r, kind, col) { // sancak amblemleri
@@ -851,7 +861,7 @@ function castleShadows(side) {
   shadowPath(50, cy, 17, 13); shadowPath(50, cy, 11, 22 + p.l);
   for (const s of [-1, 1]) shadowPath(50 + s * 17, cy, 3.6, 25 + 2 * p.l);
   if (p.l >= 2) shadowPath(50, cy - 8.5, 4.2, 38);
-  for (let x = 1; x <= 99; x += 7) { const ti = TWX.indexOf(flip() ? W - x : x); if (ti >= 0) { if (st.t[ti]) shadowPath(x, wy, 5.2, 26 + 3 * st.l); } else if (st.alive) shadowPath(x, wy, 4.7, 8 + 2 * st.l); }
+  for (let x = 2; x <= 98; x += 8) { const ti = TWX.indexOf(flip() ? W - x : x); if (ti >= 0) { if (st.t[ti]) shadowPath(x, wy, 5.2, 26 + 3 * st.l); } else if (st.alive) shadowPath(x, wy, 5.3, 8 + 2 * st.l); }
 }
 const RU = new Map(), shots = [], parts = [], motes = [];
 for (let i = 0; i < 26; i++) motes.push({ x: Math.random() * 120 - 10, y: Math.random() * H, p: Math.random() * 6 });
@@ -890,9 +900,11 @@ function adopt(v) {
   for (const f of v.fx) if (f[0] > lastFx) { lastFx = f[0]; if (started) playFx(f); }
   if (v.ph !== prevPh) { const from = prevPh; prevPh = v.ph; phaseChange(from, v.ph); }
 }
+const mmRect = () => ({ x: cw - 34, y: viewTop + 44, w: 22, h: 150 });
 function draw() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
-  if (ground) ctx.drawImage(ground, 0, 0, cv.width, cv.height);
+  ctx.fillStyle = '#3f7f30'; ctx.fillRect(0, 0, cv.width, cv.height);
+  if (ground) ctx.drawImage(ground, 0, (oy + GY0 * sc) * dpr, ground.width * PXR, ground.height * PXR);
   const sx = shake > 0 ? (Math.random() - .5) * shake * 8 : 0, sy = shake > 0 ? (Math.random() - .5) * shake * 8 : 0;
   ctx.setTransform(sc * dpr, 0, 0, sc * dpr, (ox + sx) * dpr, (oy + sy) * dpr);
   for (const d of decals) { // domates lekeleri
@@ -982,12 +994,22 @@ function draw() {
     ctx.font = '800 34px "Baloo 2", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 2.5; ctx.strokeStyle = INK; ctx.lineJoin = 'round';
     const n = String(Math.max(1, Math.ceil(V.cd))); ctx.strokeText(n, 50, H / 2); ctx.fillStyle = '#ffc73a'; ctx.fillText(n, 50, H / 2);
   }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // küçük harita
+  if (camMax > camMin) {
+    const M = mmRect(), fy = y => M.y + (y + PADT) / (H + PADT + PADB) * M.h;
+    ctx.fillStyle = 'rgba(20,18,26,.75)'; rr(M.x - 2, M.y - 2, M.w + 4, M.h + 4, 4); ctx.fill(); ctx.strokeStyle = '#b08d3a'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#4f9a3c'; ctx.fillRect(M.x, M.y, M.w, M.h); ctx.fillStyle = '#3b78c8'; ctx.fillRect(M.x, fy(H / 2) - 1.5, M.w, 3);
+    for (const sd of ['A', 'B']) { ctx.fillStyle = TEAM[sd].main; ctx.fillRect(M.x, fy(vy(WALL_Y[sd])) - 1.5, M.w, 3); ctx.fillRect(M.x + M.w / 2 - 4, fy(vy(KEEP_Y[sd])) - 4, 8, 8); }
+    for (const r of us) { ctx.fillStyle = TEAM[r.o].light; ctx.fillRect(M.x + vx(LX[r.l]) / W * M.w - 1.5, fy(vy(r.ry)) - 1.5, 3, 3); }
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(M.x - 1, fy(camY), M.w + 2, viewH / sc / (H + PADT + PADB) * M.h);
+  }
   ctx.setTransform(1, 0, 0, 1, 0, 0); // kenar karartması
   const vg = ctx.createRadialGradient(cv.width / 2, cv.height / 2, cv.height * 0.3, cv.width / 2, cv.height / 2, cv.height * 0.72);
   vg.addColorStop(0, 'rgba(10,8,30,0)'); vg.addColorStop(1, 'rgba(10,8,30,.5)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, cv.width, cv.height);
 }
 function update(dt) {
   time += dt; if (shake > 0) shake -= dt;
+  if (ptr.id === null && Math.abs(ptr.vel) > 2) { setCam(camY + ptr.vel * dt); ptr.vel *= 1 - Math.min(1, dt * 4); } // kaydırma ataleti
   for (const d of decals) d.t -= dt; decals = decals.filter(d => d.t > 0);
   for (const s of ['A', 'B']) if (kingT[s] > 0) kingT[s] -= dt;
   for (const r of RU.values()) {
@@ -1148,8 +1170,9 @@ function buildCards() {
     const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = UNITS[k].name;
     const ct = document.createElement('span'); ct.className = 'ct';
     b.append(c, nm, ct);
+    holdTip(b, () => unitTip(k));
     b.addEventListener('click', () => {
-      audioInit(); if (!V || V.ph !== 'play' || !canPlay) return;
+      audioInit(); if (tipHeld || !V || V.ph !== 'play' || !canPlay) return;
       const p = V.P[me], d = UNITS[k];
       if (p.l < d.lvl) { toast('Kilitli', 'Kaleyi ' + d.lvl + '. kademeye yükselt'); sfx('no'); return; }
       if (p.g < d.cost) { sfx('no'); return; }
@@ -1158,7 +1181,38 @@ function buildCards() {
     unitsEl.append(b);
   }
 }
-let actTab = 0;
+let actTab = 0, tipHeld = false;
+const UINFO = {
+  m: ['Ucuz ön saf askeri. Kalabalık basınca etkili.', 'Süvari ve Zırhlı ile başa baş', 'Nişancı, Demir Dev'],
+  n: ['Uzaktan vurur, canı azdır. Önüne Muhafız koy.', 'Muhafız', 'Süvari, Zırhlı, domates bombası'],
+  s: ['Çok hızlıdır, ilk vuruşu 2,5 kat hasar verir.', 'Nişancı', 'Demir Dev'],
+  z: ['Ağır zırhlı, yavaş ama çok dayanıklı.', 'Nişancı', 'Demir Dev'],
+  k: ['Askerlere vurmaz; doğrudan sura ve kaleye gider.', 'Kuleler, sur, ana kale', 'Bütün askerler (korumasız gönderme)'],
+  d: ['Yürüyen makine. Yapılara çift hasar verir.', 'Bütün birlikler ve yapılar', 'Pahalı ve yavaş; tuzak ve bomba'],
+};
+const ADESC = {
+  repair: 'En çok hasar almış yapını onarır. Yıkılmış kuleyi de geri getirir.',
+  shield: '5 saniye boyunca kalen hiç hasar almaz. 35 saniyede bir kullanılır.',
+  up: 'Kale kademesini yükseltir: can %40, kule hasarı %35 artar, gelir artar, yeni birlikler açılır.',
+  cry: '6 saniye boyunca bütün ordun %50 hızlanır ve daha sık vurur. Bedava, 30 saniyede bir.',
+  arch: 'Seçili şeridin kenarına kurulur, o şeride giren düşmanı vurur. Düşman bombasıyla yıkılabilir.',
+  trap: 'Seçili şeride kurulur; üstünden geçen ilk üç düşmana 30 hasar verir.',
+  cat: 'Senin yarına giren düşman askerlerine 7 saniyede bir taş atar (alan hasarı).',
+  tre: 'Karşı kalenin kule ve surlarını 8 saniyede bir döver. Kale 2. kademe gerekir.',
+};
+function unitTip(k) {
+  const d = UNITS[k], i = UINFO[k];
+  return '<b>' + d.name + '</b> · ' + d.cost + ' altın' + (d.lvl > 1 ? ' · kale ' + d.lvl + '. kademe' : '') + '<br>' + i[0] +
+    '<br>Can ' + d.hp + ' · Hasar ' + d.dmg + ' · Hız ' + d.sp + ' · ' + (d.range > 8 ? 'uzaktan' : 'yakın dövüş') +
+    '<br>Güçlü: ' + i[1] + '<br>Zayıf: ' + i[2];
+}
+function holdTip(el, fn) { // basılı tutunca bilgi
+  let t = null;
+  const off = () => { clearTimeout(t); t = null; if (!$('tip').hidden) { $('tip').hidden = true; setTimeout(() => { tipHeld = false; }, 80); } };
+  el.addEventListener('pointerdown', () => { clearTimeout(t); t = setTimeout(() => { tipHeld = true; $('tip').innerHTML = fn(); $('tip').hidden = false; }, 380); });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) el.addEventListener(ev, off);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+}
 const ACTS = [
   { tab: 0, c: 'repair', label: 'Onar', cost: () => 40, cd: p => p.cr },
   { tab: 0, c: 'shield', label: 'Kalkan', cost: () => 60, cd: p => p.cs },
@@ -1177,7 +1231,8 @@ const ACTS = [
 for (const A of ACTS) {
   const b = document.createElement('button'); b.type = 'button'; b.className = 'act panel'; b.id = 'a-' + A.c;
   const n = document.createElement('span'); n.textContent = A.label; const sm = document.createElement('small'); b.append(n, sm);
-  b.addEventListener('click', () => { audioInit(); if (!V || V.ph !== 'play' || !canPlay) return; send(A.lane ? { c: A.c, l: selLane } : { c: A.c }); });
+  holdTip(b, () => '<b>' + A.label + '</b><br>' + ADESC[A.c]);
+  b.addEventListener('click', () => { audioInit(); if (tipHeld || !V || V.ph !== 'play' || !canPlay) return; send(A.lane ? { c: A.c, l: selLane } : { c: A.c }); });
   $('acts').append(b);
 }
 function hud() {
@@ -1215,8 +1270,24 @@ function hud() {
   if (modalKind === 'lobby') lobbyRefresh();
 }
 function ptrWorld(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left - ox) / sc, (e.clientY - r.top - oy) / sc]; }
+const ptr = { id: null, sy: 0, c0: 0, moved: false, vel: 0, lt: 0, ly: 0 };
 cv.addEventListener('pointerdown', e => {
-  audioInit();
+  audioInit(); ptr.id = e.pointerId; ptr.sy = ptr.ly = e.clientY; ptr.c0 = camY; ptr.moved = false; ptr.vel = 0; ptr.lt = performance.now();
+  try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+});
+cv.addEventListener('pointermove', e => {
+  if (ptr.id !== e.pointerId) return;
+  const dy = e.clientY - ptr.sy, now = performance.now();
+  if (!ptr.moved && Math.abs(dy) > 8) ptr.moved = true;
+  if (ptr.moved) { setCam(ptr.c0 - dy / sc); if (now > ptr.lt) ptr.vel = -(e.clientY - ptr.ly) / sc / (now - ptr.lt) * 1000; ptr.lt = now; ptr.ly = e.clientY; }
+});
+cv.addEventListener('pointercancel', () => { ptr.id = null; });
+cv.addEventListener('pointerup', e => {
+  if (ptr.id !== e.pointerId) return; ptr.id = null;
+  if (ptr.moved) return;
+  ptr.vel = 0;
+  const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, M = mmRect();
+  if (camMax > camMin && sx > M.x - 8 && sy > M.y - 6 && sy < M.y + M.h + 6) { setCam((sy - M.y) / M.h * (H + PADT + PADB) - PADT - viewH / sc / 2); return; } // küçük haritaya dokun: oraya git
   if (!started || !canPlay || !V || V.ph !== 'play') return;
   const [wx, wy] = ptrWorld(e);
   if (wy < H / 2 - 5) { // karşı taraf: domates bombası
@@ -1227,7 +1298,6 @@ cv.addEventListener('pointerdown', e => {
     selLane = best; sfx('hit');
   }
 });
-
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function showModal(kind, html) { modalKind = kind; modalEl.innerHTML = '<div class="card">' + html + '</div>'; modalEl.hidden = false; }
 function hideModal() { modalKind = ''; modalEl.hidden = true; }
@@ -1257,7 +1327,7 @@ function startCard() {
 function lobbyCard() {
   showModal('lobby',
     '<h2>Savaş hazırlığı</h2>' +
-    '<ul><li>Avluna dokunup şerit seç, alttan birlik gönder.</li><li>Karşı tarafa dokununca kralın domates bombası atar.</li><li>Onar, kalkan aç, kaleyi yükselt. "İnşa" sekmesinden okçu kulesi, tuzak, mancınık, tribüşe kur.</li><li>Nara: 6 saniye bütün ordun hızlanır.</li><li>Ana kalesi yıkılan kaybeder. Süre 6 dakika; dolarsa kalesi daha sağlam olan kazanır.</li></ul>' +
+    '<ul><li>Haritayı parmağınla yukarı aşağı kaydır; sağdaki küçük haritaya dokunarak da gidebilirsin.</li><li>Avluna dokunup şerit seç, alttan birlik gönder. Karta basılı tutunca bilgisi çıkar.</li><li>Karşı tarafa dokununca kralın domates bombası atar.</li><li>Onar, kalkan aç, kaleyi yükselt. "İnşa" sekmesinden okçu kulesi, tuzak, mancınık, tribüşe kur.</li><li>Nara: 6 saniye bütün ordun hızlanır.</li><li>Ana kalesi yıkılan kaybeder. Süre 6 dakika; dolarsa kalesi daha sağlam olan kazanır.</li></ul>' +
     '<p class="note" id="lobSt"></p>' + shareHtml() +
     '<div class="row"><button class="btn primary" type="button" data-act="ready" id="lobReady">Hazırım</button><button class="btn" type="button" data-act="bot">Bota karşı oyna</button></div>');
   lobbyRefresh();
@@ -1290,7 +1360,7 @@ function resultCard() {
 }
 function phaseChange(from, to) {
   if (!started) return;
-  if (to === 'count') { hideModal(); resultCard.done = false; $('chat').hidden = true; }
+  if (to === 'count') { setCam(camMax); hideModal(); resultCard.done = false; $('chat').hidden = true; }
   else if (to === 'play') { hideModal(); toast('Savaş başladı!'); }
   else if (to === 'over') resultCard();
   else if (to === 'lobby') { if (from === 'play' || from === 'count') toast('Maç sıfırlandı'); lobbyCard(); }
