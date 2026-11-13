@@ -27,6 +27,11 @@ Telefondan oynanan, izometrik görünümlü, iki kişilik çevrimiçi kale kuşa
 - Maçı oda sahibinin telefonu yürütür, diğer oyuncuya durum saniyede beş kez gönderilir.
 - Veri herkese açık ücretsiz MQTT sunucularından geçer (`broker.emqx.io`, `broker.hivemq.com`). Gizli bilgi yazmayın.
 
+## Sürüm uyumu
+
+İki telefonda oyunun farklı sürümleri açıksa (biri eski sayfayı önbellekten açmışsa) eski olan kendini otomatik yeniler;
+yenilenemezse iki tarafa da ne yapılacağı yazılır. Sürüm numarası Menü'de görünür.
+
 ## Yayınlama (GitHub Pages)
 
 Settings → Pages → Deploy from a branch → bu dal, `/ (root)`.
