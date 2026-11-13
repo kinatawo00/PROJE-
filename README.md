@@ -5,12 +5,15 @@ Telefondan oynanan, izometrik görünümlü, iki kişilik çevrimiçi kale kuşa
 ## Oyun
 
 - Her oyuncunun bir kalesi var: ana kale, sur ve iki kule. Kral (karakter kartlarındaki karakter) ana kalenin tepesinde durur.
-- Üç şerit var. Avluna dokunup şerit seçer, alttaki kartlardan birlik gönderirsin: Muhafız, Nişancı, Zırhlı, Demir Dev.
-- Karşı tarafa dokununca kral domates bombası atar (birliklere ve yapılara alan hasarı).
-- Altın zamanla ve düşman öldürdükçe gelir. Altınla onarım yapılır, kalkan açılır, kale yükseltilir (yeni birlikler açılır).
-- Ana kalesi yıkılan maçı kaybeder.
-- Sohbet düğmesinden yazı ve emoji gönderilir; kralın başında balon olarak çıkar.
-- Rakip yokken bota karşı oynanabilir.
+- Üç şerit var. Avluna dokunup şerit seçer, alttaki kartlardan birlik gönderirsin:
+  Muhafız, Nişancı, Süvari, Zırhlı, Koçbaşı (yalnızca yapılara vurur), Demir Dev.
+- Karşı tarafa dokununca kral domates bombası atar.
+- Altınla: onarım, kalkan, kale yükseltme, mancınık (kendi yarına giren düşmana taş atar), şeride diken tuzağı.
+- Nara: 6 saniye bütün ordu hızlanır (30 saniyede bir).
+- Ana kalesi yıkılan kaybeder. Maç 6 dakikadır; süre dolarsa kalesi daha sağlam olan kazanır.
+  2:30'dan sonra yapılara verilen hasar giderek artar, gelir de zamanla yükselir.
+- Maçlar puan kazandırır; seviye atladıkça rütbe yükselir, yeni sancak amblemleri ve taçlar açılır.
+- Sohbet düğmesinden yazı ve emoji gönderilir. Rakip yokken bota karşı oynanabilir.
 
 ## Çevrimiçi
 
