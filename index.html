@@ -144,9 +144,9 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outli
 'use strict';
 
 /* ---------- Sabitler ---------- */
-const W = 100, H = 160, TAU = Math.PI * 2, INK = '#1b1714';
+const W = 100, H = 190, YD = H / 2 - 44, TAU = Math.PI * 2, INK = '#1b1714';
 const LX = [22, 50, 78], TWX = [36, 64];
-const WALL_Y = { A: 122, B: 38 }, KEEP_Y = { A: 143, B: 17 }, SPAWN_Y = { A: 118, B: 42 };
+const WALL_Y = { A: 150, B: 40 }, KEEP_Y = { A: 172, B: 18 }, SPAWN_Y = { A: 146, B: 44 };
 const UNITS = {
   m: { name: 'Muhafız',   hp: 60,  dmg: 8,  rate: 0.8, range: 5,  sp: 9,   cost: 20,  lvl: 1 },
   n: { name: 'Nişancı',   hp: 35,  dmg: 7,  rate: 0.9, range: 26, sp: 8,   cost: 30,  lvl: 1 },
@@ -213,7 +213,7 @@ function applyCmd(side, c) {
     p.gold -= d.cost; S.U.push({ id: S.nid++, o: side, k: c.k, l, y: SPAWN_Y[side], hp: d.hp, cd: 0.3 });
   } else if (c.c === 'bomb') {
     if (S.t < p.cb) return;
-    p.cb = S.t + 4; S.Bm.push({ o: side, x: clamp(+c.x || 50, 4, 96), y: clamp(+c.y || 80, 4, H - 4), at: S.t + 0.9 }); fx('thr', side);
+    p.cb = S.t + 4; S.Bm.push({ o: side, x: clamp(+c.x || 50, 4, 96), y: clamp(+c.y || H / 2, 4, H - 4), at: S.t + 0.9 }); fx('thr', side);
   } else if (c.c === 'shield') {
     if (p.gold < 60 || S.t < p.cs) return;
     p.gold -= 60; p.sh = S.t + 6; p.cs = S.t + 25; fx('shd', side);
@@ -363,7 +363,7 @@ function sprite(key, x0, y0, w, h, fn) {
   }
   ctx.imageSmoothingEnabled = false; ctx.drawImage(c, x0, y0, c.width / AS, c.height / AS);
 }
-const elevAt = y => { const d = Math.abs(y - H / 2); return d >= 40 ? E : d > 36 ? (d - 36) / 4 * E : 0; };
+const elevAt = y => { const d = Math.abs(y - H / 2); return d >= YD + 4 ? E : d > YD ? (d - YD) / 4 * E : 0; };
 const Y = y => { const v = vy(y); return v - elevAt(v); };
 const GLOW = {};
 function glow(x, y, r, col, a) {
@@ -382,13 +382,13 @@ function isoBox(g, cx, cy, a, h, top, left, right, lw) {
 const riverY = x => H / 2 + Math.sin((x - 50) / 15) * 3.2;
 function terr(x, y) {
   const inF = x > -3 && x < 103, dyc = Math.abs(y - H / 2), dr = Math.abs(y - riverY(x));
-  const wob = dyc > 33 || dr < 8 ? 0 : (noise2(x / 9 + 5, y / 9) - 0.5) * 3.4, lane = inF && LX.some(l => Math.abs(l - x) < 3.7 + wob);
+  const wob = dyc > YD - 3 || dr < 8 ? 0 : (noise2(x / 9 + 5, y / 9) - 0.5) * 3.4, lane = inF && LX.some(l => Math.abs(l - x) < 3.7 + wob);
   if (dr < 4.6) return lane ? { t: 'bridge', lev: 0 } : { t: 'water', lev: -1 };
-  if (inF && dyc > 36) return lane && dyc <= 40 ? { t: 'stair', lev: 0.5 } : { t: 'yard', lev: 1 };
+  if (inF && dyc > YD) return lane && dyc <= YD + 4 ? { t: 'stair', lev: 0.5 } : { t: 'yard', lev: 1 };
   if (lane) return { t: 'dirt', lev: 0 };
   if (!inF || x < 4 || x > 96) { const n = noise2(x / 20 + 9, y / 15 + 3), sand = x > 50; return n > 0.6 ? { t: sand ? 'sand' : 'rock', lev: 2 } : n > 0.42 ? { t: sand ? 'sand' : 'grass', lev: 1 } : { t: 'grass', lev: 0 }; }
   if (dr < 6.4) return { t: 'bank', lev: 0 };
-  if (dyc < 33 && noise2(x / 11 + 40, y / 11 + 7) > 0.74) return { t: 'dirt', lev: 0 };
+  if (dyc < YD - 3 && noise2(x / 11 + 40, y / 11 + 7) > 0.74) return { t: 'dirt', lev: 0 };
   return { t: 'grass', lev: 0 };
 }
 function drawTile(g, x, y, c, r, decor) {
@@ -443,7 +443,7 @@ function drawTile(g, x, y, c, r, decor) {
     const grove = noise2(x / 12 + 70, y / 12 + 70) > 0.66;
     if (T.t === 'sand') { if (n < 0.05) decor.push({ k: 'boulder', x, y: ty, s: 0.8 + n2, c: '#c79a62' }); }
     else if (!field) { if (n > 0.45 && noise2(x / 9 + 30, y / 9 + 30) > 0.42) decor.push({ k: n2 < 0.45 ? 'pine' : 'tree', x: x + (n3 - 0.5) * 2, y: ty, s: 0.8 + n2 * 0.5 }); else if (n < 0.05) decor.push({ k: 'boulder', x, y: ty, s: 0.8 + n2, c: '#8d8a84' }); }
-    else if (laneD > 9.5 && grove && n > 0.3 && Math.abs(y - H / 2) < 28) decor.push({ k: n2 < 0.3 ? 'pine' : 'tree', x: x + (n3 - 0.5) * 2, y: ty, s: 0.7 + n2 * 0.4 });
+    else if (laneD > 9.5 && grove && n > 0.3 && Math.abs(y - H / 2) < YD - 8) decor.push({ k: n2 < 0.3 ? 'pine' : 'tree', x: x + (n3 - 0.5) * 2, y: ty, s: 0.7 + n2 * 0.4 });
     else if (laneD > 6 && n < 0.03) decor.push({ k: 'boulder', x, y: ty, s: 0.5 + n2 * 0.4, c: '#8d8a84' });
     else if (laneD > 6 && n > 0.96) decor.push({ k: 'bush', x, y: ty, s: 0.6 + n2 * 0.3 });
   }
@@ -503,9 +503,9 @@ function buildGround() {
   const b = TH / 2, x0 = -ox / sc - TW, x1 = (cw - ox) / sc + TW, y0 = -oy / sc - TH * 3, y1 = (ch - oy) / sc + TH * 3;
   for (let r = Math.floor(y0 / b); r * b < y1; r++) for (let c = Math.floor(x0 / TW); c * TW < x1; c++) drawTile(g, c * TW + (r & 1) * TW / 2, r * b, c, r, decor);
   for (const l of LX) for (const s of [-1, 1]) decor.push({ k: 'parapet', x: l + s * 4.6, y: riverY(l) + 6, y0: riverY(l) - 5.5, y1: riverY(l) + 6.5 });
-  for (const [i, s, yy] of [[0, -1, H / 2 - 22], [1, 1, H / 2 - 24], [2, 1, H / 2 - 22], [0, -1, H / 2 + 22], [1, -1, H / 2 + 24], [2, 1, H / 2 + 22]]) { decor.push({ k: 'lamp', x: LX[i] + s * 6.5, y: yy }); LIGHTS.push({ x: LX[i] + s * 6.5, y: yy - 9, c: '#ffb347', r: 9 }); }
+  for (const [i, s, yy] of [[0, -1, H / 2 - 20], [1, 1, H / 2 - 34], [2, 1, H / 2 - 20], [0, -1, H / 2 + 20], [1, -1, H / 2 + 34], [2, 1, H / 2 + 20]]) { decor.push({ k: 'lamp', x: LX[i] + s * 6.5, y: yy }); LIGHTS.push({ x: LX[i] + s * 6.5, y: yy - 9, c: '#ffb347', r: 9 }); }
   const nearT = TEAM[canPlay ? me : 'A'], farT = TEAM[canPlay ? other(me) : 'B'];
-  for (const [x, y, t] of [[8, 104, nearT], [93, 110, nearT], [7, 56, farT], [92, 50, farT]]) { decor.push({ k: 'tent', x, y, c: '#efe6d2', f: t.main }, { k: 'tent', x: x + (x < 50 ? 5 : -5), y: y + 4, c: t.light, f: t.main }, { k: 'crate', x: x + (x < 50 ? 1 : -1), y: y + 7 }); }
+  for (const [x, y, t] of [[8, H / 2 + 28, nearT], [93, H / 2 + 36, nearT], [7, H / 2 - 28, farT], [92, H / 2 - 36, farT]]) { decor.push({ k: 'tent', x, y, c: '#efe6d2', f: t.main }, { k: 'tent', x: x + (x < 50 ? 5 : -5), y: y + 4, c: t.light, f: t.main }, { k: 'crate', x: x + (x < 50 ? 1 : -1), y: y + 7 }); }
   decor.sort((p, q) => p.y - q.y).forEach(d => drawDecor(g, d));
   pixelate(ground, false);
 }
